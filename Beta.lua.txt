@@ -1826,9 +1826,11 @@ local New = Creator.New
 
 local GUI = New("ScreenGui", {
 	Parent = LocalPlayer:WaitForChild("PlayerGui"),
+	Name = "MyDebugGUI", -- <-- Agrega esta línea con un nombre claro
 })
 Library.GUI = GUI
 -- ProtectGui(GUI)
+
 
 function Library:SafeCallback(Function, ...)
 	if not Function then
