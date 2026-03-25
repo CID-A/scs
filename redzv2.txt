@@ -1,5 +1,4 @@
 -- REDZ LIBRARY V2
-
 local Library = {}
 
 local Players = game:GetService('Players')
