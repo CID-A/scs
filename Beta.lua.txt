@@ -997,6 +997,15 @@ end
 
 local noop = function() end
 
+local function SetHierarchyZIndex(parent, zIndex)
+	if parent:IsA("GuiObject") then
+		parent.ZIndex = zIndex
+	end
+	for _, child in ipairs(parent:GetChildren()) do
+		SetHierarchyZIndex(child, zIndex)
+	end
+end
+
 local BaseMotor = {}
 BaseMotor.__index = BaseMotor
 
@@ -9583,37 +9592,16 @@ end
 
 Library.CreateWindow = function(self, Config)
 
-
 	assert(Config.Title, "Window - Missing Title")
 
-
-
-
-
 	if Library.Window then
-
-
 		print("You cannot create more than one window.")
-
-
 		return
-
-
 	end
 
-
-
-
-
 	Library.MinimizeKey = Config.MinimizeKey or Enum.KeyCode.LeftControl
-
-
 	Library.UseAcrylic = Config.Acrylic or false
-
-
 	Library.Acrylic = Config.Acrylic or false
-
-
 	Library.Theme = Config.Theme or "Dark"
 
 	if Config.BackgroundImage == nil then
@@ -9624,136 +9612,51 @@ Library.CreateWindow = function(self, Config)
 		Config.BackgroundTransparency = 0.5
 	end
 
-
-
-
-
 	if Config.Acrylic then
-
-
 		Acrylic.init()
-
-
 	end
-
-
-
-
 
 	local Icon = Config.Icon
 
-
 	if not fischbypass then 
-
-
 		if Library:GetIcon(Icon) then
-
-
 			Icon = Library:GetIcon(Icon)
-
-
 		end
-
-
-
-
 
 		if Icon == "" or Icon == nil then
-
-
 			Icon = nil
-
-
 		end
-
-
 	end
 
-
-
-
-
 	local Window = Components.Window({
-
-
 		Parent = GUI,
-
-
 		Size = Config.Size,
-
-
 		Title = Config.Title,
-
-
 		Icon = Icon,
-
-
 		Image = Config.Image,
-
-
 		BackgroundImage = Config.BackgroundImage,
-
-
 		BackgroundTransparency = Config.BackgroundTransparency,
-
-
 		BackgroundImageTransparency = Config.BackgroundImageTransparency,
-
-
 		SubTitle = Config.SubTitle,
-
-
 		TabWidth = Config.TabWidth,
-
 		DropdownsOutsideWindow = Config.DropdownsOutsideWindow,
-
-
 		Search = Config.Search,
-
-
 		UserInfoTitle = Config.UserInfoTitle,
-
-
 		UserInfo = Config.UserInfo,
-
-
 		UserInfoTop = Config.UserInfoTop,
-
-
 		UserInfoSubtitle = Config.UserInfoSubtitle,
-
-
 		UserInfoSubtitleColor = Config.UserInfoSubtitleColor,
-
-
 	})
 
-
-
-
-
 	Library.Window = Window
-
-
 	table.insert(Library.Windows, Window)
-
-
 	InterfaceManager:SetTheme(Config.Theme)
-
-
 	Library:SetTheme(Config.Theme)
 
-
-
-
-
+	SetHierarchyZIndex(Library.WindowFrame, 9999)  -- ADD THIS LINE HERE
+	
 	return Window
-
-
 end
-
-
-
 
 
 function Library:CreateMinimizer(Config)
