@@ -9777,7 +9777,7 @@ function Library:CreateMinimizer(Config)
 	local parentGui = Library.GUI or GUI
 
 
-	if parentGui then parentGui.DisplayOrder = 1000 end
+	if parentGui then parentGui.DisplayOrder = 1000000 end
 
 
 	local isMobile = Mobile and true or false
