@@ -1,11 +1,9 @@
 --[[
-    ModernUI Library v1.0
-    Estilo: Fluent mejorado, sin Acrylic, compatible con todos los executores
-    Características:
-    - Ventana con borde redondeado y sombra
-    - Sistema completo de configuración (guardar/cargar)
-    - Auto-carga de última configuración
-    - Tabs, Botones, Toggles, Sliders, Dropdowns, Inputs
+    ModernUI Library v2.0
+    - Corregido error de directorio
+    - Slider funcionando correctamente
+    - Sistema de configuración por juego
+    - Auto-carga opcional (toggle)
 ]]
 
 local ModernUI = {}
@@ -19,11 +17,17 @@ local HttpService = game:GetService("HttpService")
 local player = Players.LocalPlayer
 local mouse = player:GetMouse()
 
+-- Obtener ID del juego actual
+local gameId = game.GameId or tostring(game.PlaceId)
+local gameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name or tostring(game.PlaceId)
+-- Limpiar nombre para usar como carpeta
+local safeGameName = gameName:gsub("[^%w]", "_")
+
 -- Configuración global de estilo
 local Style = {
-    Background = Color3.fromRGB(25, 25, 30),      -- Gris oscuro
+    Background = Color3.fromRGB(25, 25, 30),
     BackgroundSecondary = Color3.fromRGB(35, 35, 42),
-    Accent = Color3.fromRGB(220, 220, 235),       -- Blanco claro como acento
+    Accent = Color3.fromRGB(220, 220, 235),
     AccentHover = Color3.fromRGB(200, 200, 215),
     Text = Color3.fromRGB(240, 240, 245),
     TextDim = Color3.fromRGB(160, 160, 175),
@@ -54,60 +58,80 @@ local function addShadow(frame)
     return shadow
 end
 
--- Sistema de configuración
+-- Sistema de configuración por juego (sin errores)
 local ConfigSystem = {
     _data = {},
-    _folder = "ModernUI",
     _currentConfig = nil,
+    _autoLoadEnabled = false,
+    _gameFolder = safeGameName,
 }
 
-function ConfigSystem:SetFolder(folderName)
-    self._folder = folderName
-    if not isfolder and syn and syn.isfolder then
-        if not syn.isfolder(folderName) then
-            syn.makefolder(folderName)
+function ConfigSystem:GetBaseFolder()
+    return "ModernUI_Configs/" .. self._gameFolder
+end
+
+function ConfigSystem:EnsureFolder()
+    local folderPath = self:GetBaseFolder()
+    local success, err = pcall(function()
+        if makefolder then
+            makefolder("ModernUI_Configs")
+            makefolder(folderPath)
+        elseif syn and syn.makefolder then
+            syn.makefolder("ModernUI_Configs")
+            syn.makefolder(folderPath)
         end
-    elseif not isfolder and makefolder then
-        makefolder(folderName)
-    end
+    end)
+    return success
 end
 
 function ConfigSystem:SaveConfig(name, data)
-    self._currentConfig = name
+    self:EnsureFolder()
+    local folderPath = self:GetBaseFolder()
     local json = HttpService:JSONEncode(data)
     
-    if writefile then
-        writefile(self._folder .. "/" .. name .. ".json", json)
-        return true
-    elseif syn and syn.writefile then
-        syn.writefile(self._folder .. "/" .. name .. ".json", json)
-        return true
-    end
-    return false
+    local success, err = pcall(function()
+        if writefile then
+            writefile(folderPath .. "/" .. name .. ".json", json)
+        elseif syn and syn.writefile then
+            syn.writefile(folderPath .. "/" .. name .. ".json", json)
+        else
+            return false
+        end
+    end)
+    return success
 end
 
 function ConfigSystem:LoadConfig(name)
+    local folderPath = self:GetBaseFolder()
     local content = nil
-    if readfile then
-        content = readfile(self._folder .. "/" .. name .. ".json")
-    elseif syn and syn.readfile then
-        content = syn.readfile(self._folder .. "/" .. name .. ".json")
-    end
+    
+    local success, err = pcall(function()
+        if readfile then
+            content = readfile(folderPath .. "/" .. name .. ".json")
+        elseif syn and syn.readfile then
+            content = syn.readfile(folderPath .. "/" .. name .. ".json")
+        end
+    end)
     
     if content then
-        self._currentConfig = name
         return HttpService:JSONDecode(content)
     end
     return nil
 end
 
 function ConfigSystem:ListConfigs()
+    local folderPath = self:GetBaseFolder()
     local files = {}
-    if listfiles then
-        files = listfiles(self._folder)
-    elseif syn and syn.listfiles then
-        files = syn.listfiles(self._folder)
-    end
+    
+    local success, err = pcall(function()
+        if listfiles then
+            files = listfiles(folderPath)
+        elseif syn and syn.listfiles then
+            files = syn.listfiles(folderPath)
+        end
+    end)
+    
+    if not success then return {} end
     
     local configs = {}
     for _, file in pairs(files) do
@@ -119,12 +143,31 @@ function ConfigSystem:ListConfigs()
     return configs
 end
 
+function ConfigSystem:SetAutoLoad(enabled, configName)
+    self._autoLoadEnabled = enabled
+    if enabled and configName then
+        self._currentConfig = configName
+        local data = self:LoadConfig(configName)
+        if data then
+            data._autoload = true
+            self:SaveConfig(configName, data)
+        end
+    elseif not enabled and self._currentConfig then
+        local data = self:LoadConfig(self._currentConfig)
+        if data then
+            data._autoload = false
+            self:SaveConfig(self._currentConfig, data)
+        end
+    end
+end
+
 function ConfigSystem:AutoLoad()
+    if not self._autoLoadEnabled then return nil end
+    
     if self._currentConfig then
         return self:LoadConfig(self._currentConfig)
     end
     
-    -- Buscar si hay una configuración marcada como autoload
     local configs = self:ListConfigs()
     for _, cfg in pairs(configs) do
         local data = self:LoadConfig(cfg)
@@ -135,9 +178,6 @@ function ConfigSystem:AutoLoad()
     end
     return nil
 end
-
--- Elementos UI
-local UIElements = {} -- Para guardar referencias y poder guardar/cargar configuraciones
 
 -- Ventana principal
 function ModernUI:CreateWindow(config)
@@ -261,7 +301,8 @@ function ModernUI:CreateWindow(config)
         _contentContainer = contentContainer,
         _tabs = {},
         _currentTab = nil,
-        _elements = {}, -- Guardar elementos para configuración
+        _elements = {},
+        _configLoaded = false,
     }
     
     -- Método para añadir pestaña
@@ -298,7 +339,7 @@ function ModernUI:CreateWindow(config)
         padding.PaddingBottom = UDim.new(0, 5)
         padding.Parent = tabContent
         
-        -- Efecto hover en botón de pestaña
+        -- Efecto hover
         tabButton.MouseEnter:Connect(function()
             if window._currentTab ~= tabName then
                 TweenService:Create(tabButton, TweenInfo.new(0.2), {BackgroundColor3 = Style.Background}):Play()
@@ -337,7 +378,6 @@ function ModernUI:CreateWindow(config)
             content = tabContent,
             elements = {},
             
-            -- Añadir sección
             AddSection = function(self, sectionTitle)
                 local sectionFrame = Instance.new("Frame")
                 sectionFrame.Size = UDim2.new(1, 0, 0, 35)
@@ -360,7 +400,6 @@ function ModernUI:CreateWindow(config)
                 return sectionFrame
             end,
             
-            -- Añadir botón
             AddButton = function(self, btnConfig)
                 local btn = Instance.new("TextButton")
                 btn.Size = UDim2.new(1, 0, 0, 38)
@@ -389,7 +428,6 @@ function ModernUI:CreateWindow(config)
                 return btn
             end,
             
-            -- Añadir toggle
             AddToggle = function(self, toggleConfig)
                 local toggleId = toggleConfig.Id
                 local frame = Instance.new("Frame")
@@ -444,7 +482,7 @@ function ModernUI:CreateWindow(config)
                     updateToggle()
                     if toggleConfig.Callback then toggleConfig.Callback(state) end
                     if toggleId then
-                        window._elements[toggleId] = state
+                        window._elements[toggleId] = {value = state, type = "toggle", set = function(v) state = v; updateToggle() end, get = function() return state end}
                     end
                 end)
                 
@@ -460,7 +498,6 @@ function ModernUI:CreateWindow(config)
                 return toggleObj
             end,
             
-            -- Añadir slider
             AddSlider = function(self, sliderConfig)
                 local sliderId = sliderConfig.Id
                 local frame = Instance.new("Frame")
@@ -526,12 +563,14 @@ function ModernUI:CreateWindow(config)
                     valueLabel.Text = tostring(value)
                     if sliderConfig.Callback then sliderConfig.Callback(value) end
                     if sliderId then
-                        window._elements[sliderId] = value
+                        window._elements[sliderId] = {value = value, type = "slider", set = function(v) value = v; updateSlider() end, get = function() return value end}
                     end
                 end
                 
                 local dragging = false
-                sliderTrack.InputBegan:Connect(function(input)
+                local connection1, connection2, connection3
+                
+                local function startDrag(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 then
                         dragging = true
                         local percent = math.clamp((input.Position.X - sliderTrack.AbsolutePosition.X) / sliderTrack.AbsoluteSize.X, 0, 1)
@@ -541,9 +580,9 @@ function ModernUI:CreateWindow(config)
                         end
                         updateSlider()
                     end
-                end)
+                end
                 
-                UserInputService.InputChanged:Connect(function(input)
+                local function dragMove(input)
                     if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
                         local percent = math.clamp((input.Position.X - sliderTrack.AbsolutePosition.X) / sliderTrack.AbsoluteSize.X, 0, 1)
                         value = min + (max - min) * percent
@@ -552,13 +591,17 @@ function ModernUI:CreateWindow(config)
                         end
                         updateSlider()
                     end
-                end)
+                end
                 
-                UserInputService.InputEnded:Connect(function(input)
+                local function endDrag(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 then
                         dragging = false
                     end
-                end)
+                end
+                
+                sliderTrack.InputBegan:Connect(startDrag)
+                connection1 = UserInputService.InputChanged:Connect(dragMove)
+                connection2 = UserInputService.InputEnded:Connect(endDrag)
                 
                 updateSlider()
                 
@@ -575,11 +618,10 @@ function ModernUI:CreateWindow(config)
                 return sliderObj
             end,
             
-            -- Añadir dropdown
-            AddDropdown = function(self, dropdownConfig)
-                local dropdownId = dropdownConfig.Id
+            AddInput = function(self, inputConfig)
+                local inputId = inputConfig.Id
                 local frame = Instance.new("Frame")
-                frame.Size = UDim2.new(1, 0, 0, 50)
+                frame.Size = UDim2.new(1, 0, 0, 70)
                 frame.BackgroundColor3 = Style.BackgroundSecondary
                 frame.BorderSizePixel = 0
                 frame.Parent = tabContent
@@ -588,7 +630,7 @@ function ModernUI:CreateWindow(config)
                 local label = Instance.new("TextLabel")
                 label.Size = UDim2.new(1, -20, 0, 25)
                 label.Position = UDim2.new(0, 15, 0, 5)
-                label.Text = dropdownConfig.Title
+                label.Text = inputConfig.Title
                 label.TextColor3 = Style.Text
                 label.TextSize = 14
                 label.Font = Enum.Font.Gotham
@@ -596,82 +638,56 @@ function ModernUI:CreateWindow(config)
                 label.BackgroundTransparency = 1
                 label.Parent = frame
                 
-                local dropdownBtn = Instance.new("TextButton")
-                dropdownBtn.Size = UDim2.new(0, 150, 0, 30)
-                dropdownBtn.Position = UDim2.new(1, -165, 0, 15)
-                dropdownBtn.Text = dropdownConfig.Values[dropdownConfig.Default or 1] or dropdownConfig.Values[1]
-                dropdownBtn.TextColor3 = Style.Text
-                dropdownBtn.TextSize = 13
-                dropdownBtn.Font = Enum.Font.Gotham
-                dropdownBtn.BackgroundColor3 = Style.Background
-                dropdownBtn.BorderSizePixel = 0
-                dropdownBtn.Parent = frame
-                applyCorner(dropdownBtn, 6)
+                local textBox = Instance.new("TextBox")
+                textBox.Size = UDim2.new(1, -30, 0, 35)
+                textBox.Position = UDim2.new(0, 15, 0, 30)
+                textBox.PlaceholderText = inputConfig.Placeholder or ""
+                textBox.Text = inputConfig.Default or ""
+                textBox.TextColor3 = Style.Text
+                textBox.TextSize = 14
+                textBox.Font = Enum.Font.Gotham
+                textBox.BackgroundColor3 = Style.Background
+                textBox.BorderSizePixel = 0
+                textBox.Parent = frame
+                applyCorner(textBox, 6)
                 
-                local value = dropdownConfig.Default or 1
-                local values = dropdownConfig.Values
-                
-                dropdownBtn.MouseButton1Click:Connect(function()
-                    -- Dropdown menu simple
-                    local dropdownMenu = Instance.new("Frame")
-                    dropdownMenu.Size = UDim2.new(0, 150, 0, math.min(#values * 30, 200))
-                    dropdownMenu.Position = UDim2.new(1, -165, 0, 45)
-                    dropdownMenu.BackgroundColor3 = Style.Background
-                    dropdownMenu.BorderSizePixel = 1
-                    dropdownMenu.BorderColor3 = Style.Border
-                    dropdownMenu.Parent = frame
-                    applyCorner(dropdownMenu, 6)
-                    
-                    local menuLayout = Instance.new("UIListLayout")
-                    menuLayout.Padding = UDim.new(0, 2)
-                    menuLayout.Parent = dropdownMenu
-                    
-                    for i, v in pairs(values) do
-                        local optBtn = Instance.new("TextButton")
-                        optBtn.Size = UDim2.new(1, 0, 0, 30)
-                        optBtn.Text = v
-                        optBtn.TextColor3 = Style.Text
-                        optBtn.TextSize = 12
-                        optBtn.Font = Enum.Font.Gotham
-                        optBtn.BackgroundColor3 = Style.BackgroundSecondary
-                        optBtn.BorderSizePixel = 0
-                        optBtn.Parent = dropdownMenu
-                        
-                        optBtn.MouseButton1Click:Connect(function()
-                            value = i
-                            dropdownBtn.Text = v
-                            dropdownMenu:Destroy()
-                            if dropdownConfig.Callback then dropdownConfig.Callback(v) end
-                            if dropdownId then
-                                window._elements[dropdownId] = v
+                local function onFocusLost()
+                    if inputConfig.Callback then
+                        if inputConfig.Numeric then
+                            local num = tonumber(textBox.Text)
+                            if num then
+                                inputConfig.Callback(num)
+                                if inputId then
+                                    window._elements[inputId] = num
+                                end
                             end
-                        end)
-                    end
-                    
-                    -- Cerrar al hacer clic fuera
-                    local function closeMenu()
-                        if dropdownMenu and dropdownMenu.Parent then
-                            dropdownMenu:Destroy()
+                        else
+                            inputConfig.Callback(textBox.Text)
+                            if inputId then
+                                window._elements[inputId] = textBox.Text
+                            end
                         end
-                        UserInputService.InputBegan:Disconnect(closeConnection)
                     end
-                    
-                    local closeConnection = UserInputService.InputBegan:Connect(function(input)
-                        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                            task.wait(0.1)
-                            closeMenu()
-                        end
-                    end)
-                end)
-                
-                local dropdownObj = { SetValue = function(i) value = i; dropdownBtn.Text = values[i]; end, GetValue = function() return values[value] end }
-                table.insert(self.elements, {type = "dropdown", ref = dropdownObj, config = dropdownConfig, id = dropdownId})
-                
-                if dropdownId then
-                    window._elements[dropdownId] = dropdownObj
                 end
                 
-                return dropdownObj
+                textBox.FocusLost:Connect(onFocusLost)
+                
+                local inputObj = { 
+                    SetValue = function(v) textBox.Text = tostring(v) end, 
+                    GetValue = function() 
+                        if inputConfig.Numeric then
+                            return tonumber(textBox.Text) or 0
+                        end
+                        return textBox.Text 
+                    end 
+                }
+                table.insert(self.elements, {type = "input", ref = inputObj, config = inputConfig, id = inputId})
+                
+                if inputId then
+                    window._elements[inputId] = inputObj
+                end
+                
+                return inputObj
             end,
         }
         
@@ -722,14 +738,12 @@ function ModernUI:CreateWindow(config)
         notifyFrame:Destroy()
     end
     
-    -- Sistema de configuración
+    -- Sistema de configuración completo (como pides)
     function window:SetupConfigSystem()
-        ConfigSystem:SetFolder("ModernUI")
-        
-        -- Añadir pestaña de configuraciones si no existe
+        -- Buscar o crear pestaña de Configuración
         local configTab = nil
         for _, tab in pairs(window._tabs) do
-            if tab.name == "Configuración" then
+            if tab.name == "⚙ Configuración" or tab.name == "Configuración" then
                 configTab = tab
                 break
             end
@@ -739,90 +753,210 @@ function ModernUI:CreateWindow(config)
             configTab = window:AddTab({Title = "⚙ Configuración"})
         end
         
-        -- Lista de configuraciones
-        local configList = configTab:AddDropdown({
-            Title = "Configuraciones guardadas",
-            Values = {"-- Seleccionar --"},
-            Callback = function(selected)
-                if selected ~= "-- Seleccionar --" then
-                    local data = ConfigSystem:LoadConfig(selected)
-                    if data then
-                        -- Cargar valores guardados
-                        for id, value in pairs(data) do
-                            if id ~= "_autoload" and window._elements[id] then
-                                if window._elements[id].SetValue then
-                                    window._elements[id]:SetValue(value)
-                                end
-                            end
-                        end
-                        window:Notify({Title = "Cargado", Content = "Configuración " .. selected .. " cargada", Duration = 2})
+        configTab:AddSection("Gestión de configuraciones")
+        
+        -- Input para nombre de configuración
+        local configNameInput = configTab:AddInput({
+            Id = "config_name_input",
+            Title = "Nombre de la configuración",
+            Placeholder = "Ej: Settings_V1",
+            Default = "",
+        })
+        
+        -- Dropdown de configuraciones guardadas
+        local configDropdown = nil
+        local lastConfigList = {}
+        
+        local function refreshDropdown()
+            local configs = ConfigSystem:ListConfigs()
+            lastConfigList = configs
+            if #configs == 0 then
+                if configDropdown then
+                    configDropdown:SetValue("-- Sin configuraciones --")
+                end
+            else
+                if configDropdown then
+                    local current = configDropdown:GetValue()
+                    if current == "-- Sin configuraciones --" or not current then
+                        configDropdown:SetValue(configs[1])
                     end
+                end
+            end
+        end
+        
+        configDropdown = configTab:AddDropdown({
+            Id = "config_dropdown",
+            Title = "Configuraciones guardadas",
+            Values = {"-- Sin configuraciones --"},
+            Callback = function(selected)
+                if selected ~= "-- Sin configuraciones --" then
+                    -- Solo seleccionar, no cargar automáticamente
                 end
             end
         })
         
-        -- Actualizar lista de configuraciones
-        local function refreshConfigList()
-            local configs = ConfigSystem:ListConfigs()
-            if #configs == 0 then
-                configList:SetValue("-- Seleccionar --")
-            else
-                table.insert(configs, 1, "-- Seleccionar --")
-                -- Nota: Para actualizar dropdown completamente necesitarías recrearlo
-                -- Por simplicidad, se mantiene así
-            end
-        end
-        
-        -- Guardar configuración
-        local configNameInput = nil
+        -- Botón Guardar configuración
         configTab:AddButton({
-            Title = "Guardar configuración actual",
+            Title = "💾 Guardar configuración",
             Callback = function()
+                local name = configNameInput:GetValue()
+                if name == "" then
+                    window:Notify({Title = "Error", Content = "Ingresa un nombre para la configuración", Duration = 2})
+                    return
+                end
+                
+                -- Recopilar datos de todos los elementos con ID
                 local data = {}
                 for id, element in pairs(window._elements) do
                     if element.GetValue then
                         data[id] = element:GetValue()
-                    elseif type(element) ~= "table" then
-                        data[id] = element
                     end
                 end
                 
-                local name = "config_" .. os.time()
-                ConfigSystem:SaveConfig(name, data)
-                refreshConfigList()
-                window:Notify({Title = "Guardado", Content = "Configuración " .. name .. " guardada", Duration = 2})
+                if ConfigSystem:SaveConfig(name, data) then
+                    window:Notify({Title = "Guardado", Content = "Configuración '" .. name .. "' guardada", Duration = 2})
+                    refreshDropdown()
+                    -- Actualizar valores del dropdown
+                    local configs = ConfigSystem:ListConfigs()
+                    if #configs > 0 then
+                        -- Recrear dropdown con nuevos valores
+                        configDropdown:SetValue(configs[1])
+                    end
+                else
+                    window:Notify({Title = "Error", Content = "No se pudo guardar la configuración", Duration = 2})
+                end
             end
         })
         
+        -- Botón Cargar configuración (solo para esta sesión)
         configTab:AddButton({
-            Title = "Cargar última configuración (auto)",
+            Title = "📂 Cargar configuración (esta sesión)",
+            Callback = function()
+                local selected = configDropdown:GetValue()
+                if not selected or selected == "-- Sin configuraciones --" then
+                    window:Notify({Title = "Error", Content = "No hay configuración seleccionada", Duration = 2})
+                    return
+                end
+                
+                local data = ConfigSystem:LoadConfig(selected)
+                if data then
+                    for id, value in pairs(data) do
+                        if window._elements[id] and window._elements[id].SetValue then
+                            window._elements[id]:SetValue(value)
+                        end
+                    end
+                    window:Notify({Title = "Cargado", Content = "Configuración '" .. selected .. "' cargada (solo esta sesión)", Duration = 2})
+                else
+                    window:Notify({Title = "Error", Content = "No se pudo cargar la configuración", Duration = 2})
+                end
+            end
+        })
+        
+        configTab:AddSection("Configuración automática")
+        
+        -- Toggle para auto-carga
+        local autoLoadToggle = configTab:AddToggle({
+            Id = "auto_load_toggle",
+            Title = "Cargar configuración automáticamente al iniciar",
+            Default = false,
+            Callback = function(state)
+                if state then
+                    local selected = configDropdown:GetValue()
+                    if selected and selected ~= "-- Sin configuraciones --" then
+                        ConfigSystem:SetAutoLoad(true, selected)
+                        window:Notify({Title = "Auto-carga activada", Content = "Se cargará '" .. selected .. "' al iniciar", Duration = 2})
+                    else
+                        autoLoadToggle:SetValue(false)
+                        window:Notify({Title = "Error", Content = "Selecciona una configuración primero", Duration = 2})
+                    end
+                else
+                    ConfigSystem:SetAutoLoad(false, nil)
+                    window:Notify({Title = "Auto-carga desactivada", Content = "No se cargará ninguna configuración automática", Duration = 2})
+                end
+            end
+        })
+        
+        -- Botón para forzar auto-carga ahora
+        configTab:AddButton({
+            Title = "🔄 Forzar auto-carga ahora",
             Callback = function()
                 local data = ConfigSystem:AutoLoad()
                 if data then
                     for id, value in pairs(data) do
-                        if id ~= "_autoload" and window._elements[id] and window._elements[id].SetValue then
+                        if window._elements[id] and window._elements[id].SetValue then
                             window._elements[id]:SetValue(value)
                         end
                     end
-                    window:Notify({Title = "Auto-cargado", Content = "Configuración automática cargada", Duration = 2})
+                    window:Notify({Title = "Auto-cargado", Content = "Configuración cargada automáticamente", Duration = 2})
                 else
-                    window:Notify({Title = "Info", Content = "No hay configuración para auto-cargar", Duration = 2})
+                    window:Notify({Title = "Info", Content = "No hay configuración para auto-cargar o auto-carga desactivada", Duration = 2})
                 end
             end
         })
         
-        -- Auto-cargar al inicio
+        -- Mostrar carpeta donde se guardan las configuraciones
+        configTab:AddSection("Información")
+        configTab:AddParagraph({
+            Title = "📁 Ubicación de configuraciones",
+            Content = "Juego: " .. gameName .. "\nCarpeta: ModernUI_Configs/" .. safeGameName
+        })
+        
+        -- Inicializar dropdown
+        refreshDropdown()
+        
+        -- Auto-cargar si está activado
         local autoData = ConfigSystem:AutoLoad()
         if autoData then
             task.spawn(function()
                 task.wait(0.5)
                 for id, value in pairs(autoData) do
-                    if id ~= "_autoload" and window._elements[id] and window._elements[id].SetValue then
+                    if window._elements[id] and window._elements[id].SetValue then
                         window._elements[id]:SetValue(value)
                     end
                 end
+                -- Actualizar el toggle para reflejar que auto-carga está activada
+                if autoLoadToggle then
+                    autoLoadToggle:SetValue(ConfigSystem._autoLoadEnabled)
+                end
+                window:Notify({Title = "Auto-carga", Content = "Configuración cargada automáticamente", Duration = 2})
             end)
         end
+    end
+    
+    -- Método para añadir párrafo
+    function window:AddParagraph(config)
+        local tab = self._tabs[self._currentTab]
+        if not tab then return end
+        
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(1, 0, 0, 50)
+        frame.BackgroundColor3 = Style.BackgroundSecondary
+        frame.BorderSizePixel = 0
+        frame.Parent = tab.content
+        applyCorner(frame, 6)
+        
+        local titleLabel = Instance.new("TextLabel")
+        titleLabel.Size = UDim2.new(1, -20, 0, 20)
+        titleLabel.Position = UDim2.new(0, 15, 0, 5)
+        titleLabel.Text = config.Title or ""
+        titleLabel.TextColor3 = Style.Accent
+        titleLabel.TextSize = 14
+        titleLabel.Font = Enum.Font.GothamBold
+        titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+        titleLabel.BackgroundTransparency = 1
+        titleLabel.Parent = frame
+        
+        local contentLabel = Instance.new("TextLabel")
+        contentLabel.Size = UDim2.new(1, -20, 0, 25)
+        contentLabel.Position = UDim2.new(0, 15, 0, 25)
+        contentLabel.Text = config.Content or ""
+        contentLabel.TextColor3 = Style.TextDim
+        contentLabel.TextSize = 12
+        contentLabel.Font = Enum.Font.Gotham
+        contentLabel.TextXAlignment = Enum.TextXAlignment.Left
+        contentLabel.TextYAlignment = Enum.TextYAlignment.Top
+        contentLabel.BackgroundTransparency = 1
+        contentLabel.Parent = frame
     end
     
     return window
