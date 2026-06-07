@@ -1,11 +1,10 @@
 --[[
-    ModernUI Library v3.0
-    - Diseño moderno con transparencia
-    - Sistema completo de configuraciones
-    - Todos los controles funcionando
+    CID UI Library v1.0
+    Estilo Fluent, completamente funcional
+    Sistema de configuraciones por juego
 ]]
 
-local ModernUI = {}
+local CIDUI = {}
 
 -- Servicios
 local Players = game:GetService("Players")
@@ -15,85 +14,52 @@ local HttpService = game:GetService("HttpService")
 
 local player = Players.LocalPlayer
 
--- Obtener ID del juego
-local gameId = game.GameId or tostring(game.PlaceId)
-local gameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name or tostring(game.PlaceId)
+-- Obtener información del juego
+local gamePlaceId = game.PlaceId
+local gameName = game:GetService("MarketplaceService"):GetProductInfo(gamePlaceId).Name or tostring(gamePlaceId)
 local safeGameName = gameName:gsub("[^%w]", "_")
 
--- Estilo moderno con transparencia
-local Style = {
-    Background = Color3.fromRGB(20, 20, 25),
-    BackgroundTrans = 0.85,
-    BackgroundSecondary = Color3.fromRGB(30, 30, 38),
-    BackgroundSecondaryTrans = 0.9,
-    Accent = Color3.fromRGB(100, 150, 255),
-    AccentHover = Color3.fromRGB(130, 175, 255),
-    Text = Color3.fromRGB(245, 245, 250),
-    TextDim = Color3.fromRGB(170, 175, 190),
-    Border = Color3.fromRGB(50, 55, 65),
-    BorderTrans = 0.6,
-    CornerRadius = 10,
-    ShadowSize = 15,
-    Glow = true,
-}
+-- Sistema de archivos seguro
+local FileSystem = {}
 
--- Función para esquinas redondeadas
-local function applyCorner(instance, radius)
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, radius or Style.CornerRadius)
-    corner.Parent = instance
+function FileSystem:GetGameFolder()
+    return "CID-UI_CONFIGS/" .. safeGameName
 end
 
--- Función para añadir borde
-local function addStroke(instance, color, thickness)
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = color or Style.Border
-    stroke.Thickness = thickness or 1
-    stroke.Transparency = Style.BorderTrans
-    stroke.Parent = instance
-    return stroke
-end
-
--- Sistema de configuración
-local ConfigSystem = {
-    _gameFolder = safeGameName,
-}
-
-function ConfigSystem:GetBaseFolder()
-    return "ModernUI_Configs/" .. self._gameFolder
-end
-
-function ConfigSystem:EnsureFolder()
+function FileSystem:EnsureFolders()
     pcall(function()
         if makefolder then
-            makefolder("ModernUI_Configs")
-            makefolder(self:GetBaseFolder())
+            makefolder("CID-UI_CONFIGS")
+            makefolder(self:GetGameFolder())
         elseif syn and syn.makefolder then
-            syn.makefolder("ModernUI_Configs")
-            syn.makefolder(self:GetBaseFolder())
+            syn.makefolder("CID-UI_CONFIGS")
+            syn.makefolder(self:GetGameFolder())
         end
     end)
 end
 
-function ConfigSystem:SaveConfig(name, data)
-    self:EnsureFolder()
+function FileSystem:Save(name, data)
+    self:EnsureFolders()
     local json = HttpService:JSONEncode(data)
+    local path = self:GetGameFolder() .. "/" .. name .. ".txt"
     pcall(function()
         if writefile then
-            writefile(self:GetBaseFolder() .. "/" .. name .. ".json", json)
+            writefile(path, json)
         elseif syn and syn.writefile then
-            syn.writefile(self:GetBaseFolder() .. "/" .. name .. ".json", json)
+            syn.writefile(path, json)
         end
     end)
+    return true
 end
 
-function ConfigSystem:LoadConfig(name)
+function FileSystem:Load(name)
+    local path = self:GetGameFolder() .. "/" .. name .. ".txt"
     local content = nil
     pcall(function()
         if readfile then
-            content = readfile(self:GetBaseFolder() .. "/" .. name .. ".json")
+            content = readfile(path)
         elseif syn and syn.readfile then
-            content = syn.readfile(self:GetBaseFolder() .. "/" .. name .. ".json")
+            content = syn.readfile(path)
         end
     end)
     if content then
@@ -102,19 +68,20 @@ function ConfigSystem:LoadConfig(name)
     return nil
 end
 
-function ConfigSystem:ListConfigs()
+function FileSystem:List()
+    local path = self:GetGameFolder()
     local files = {}
     pcall(function()
         if listfiles then
-            files = listfiles(self:GetBaseFolder())
+            files = listfiles(path)
         elseif syn and syn.listfiles then
-            files = syn.listfiles(self:GetBaseFolder())
+            files = syn.listfiles(path)
         end
     end)
     
     local configs = {}
     for _, file in pairs(files) do
-        local name = file:match("([^/\\]+)%.json$")
+        local name = file:match("([^/\\]+)%.txt$")
         if name then
             table.insert(configs, name)
         end
@@ -122,44 +89,50 @@ function ConfigSystem:ListConfigs()
     return configs
 end
 
+-- Estilo (semi-transparente, como Fluent)
+local Style = {
+    Background = Color3.fromRGB(30, 30, 35),
+    BackgroundTrans = 0.92,
+    BackgroundSecondary = Color3.fromRGB(40, 40, 48),
+    BackgroundSecondaryTrans = 0.94,
+    Accent = Color3.fromRGB(0, 120, 215),
+    AccentHover = Color3.fromRGB(0, 140, 240),
+    Text = Color3.fromRGB(240, 240, 245),
+    TextDim = Color3.fromRGB(170, 175, 190),
+    Border = Color3.fromRGB(60, 65, 75),
+    CornerRadius = 8,
+}
+
+local function applyCorner(instance, radius)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, radius or Style.CornerRadius)
+    corner.Parent = instance
+end
+
 -- Ventana principal
-function ModernUI:CreateWindow(config)
+function CIDUI:CreateWindow(config)
     config = config or {}
-    local title = config.Title or "ModernUI"
+    local title = config.Title or "CID UI"
     local subtitle = config.SubTitle or ""
     local size = config.Size or UDim2.new(0, 600, 0, 480)
     
-    -- ScreenGui
     local gui = Instance.new("ScreenGui")
-    gui.Name = "ModernUI"
+    gui.Name = "CIDUI"
     gui.Parent = game:GetService("CoreGui")
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     
-    -- Frame principal
     local mainFrame = Instance.new("Frame")
     mainFrame.Size = size
     mainFrame.Position = UDim2.new(0.5, -size.X.Offset/2, 0.5, -size.Y.Offset/2)
     mainFrame.BackgroundColor3 = Style.Background
     mainFrame.BackgroundTransparency = Style.BackgroundTrans
-    mainFrame.BorderSizePixel = 0
+    mainFrame.BorderSizePixel = 1
+    mainFrame.BorderColor3 = Style.Border
     mainFrame.ClipsDescendants = true
     mainFrame.Parent = gui
     applyCorner(mainFrame)
-    addStroke(mainFrame, Style.Border, 1)
     
-    -- Sombra
-    local shadow = Instance.new("Frame")
-    shadow.Name = "Shadow"
-    shadow.Size = UDim2.new(1, 10, 1, 10)
-    shadow.Position = UDim2.new(0, -5, 0, -5)
-    shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    shadow.BackgroundTransparency = 0.7
-    shadow.BorderSizePixel = 0
-    shadow.ZIndex = -1
-    shadow.Parent = mainFrame
-    applyCorner(shadow, Style.CornerRadius + 3)
-    
-    -- Hacer arrastrable
+    -- Arrastrable
     local dragging = false
     local dragStart, startPos
     
@@ -184,9 +157,9 @@ function ModernUI:CreateWindow(config)
         end
     end)
     
-    -- Barra de título
+    -- Barra título
     local titleBar = Instance.new("Frame")
-    titleBar.Size = UDim2.new(1, 0, 0, 55)
+    titleBar.Size = UDim2.new(1, 0, 0, 50)
     titleBar.BackgroundColor3 = Style.BackgroundSecondary
     titleBar.BackgroundTransparency = Style.BackgroundSecondaryTrans
     titleBar.BorderSizePixel = 0
@@ -194,10 +167,10 @@ function ModernUI:CreateWindow(config)
     
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Size = UDim2.new(1, -100, 0, 25)
-    titleLabel.Position = UDim2.new(0, 20, 0, 8)
+    titleLabel.Position = UDim2.new(0, 15, 0, 8)
     titleLabel.Text = title
     titleLabel.TextColor3 = Style.Text
-    titleLabel.TextSize = 18
+    titleLabel.TextSize = 16
     titleLabel.Font = Enum.Font.GothamBold
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.BackgroundTransparency = 1
@@ -205,7 +178,7 @@ function ModernUI:CreateWindow(config)
     
     local subtitleLabel = Instance.new("TextLabel")
     subtitleLabel.Size = UDim2.new(1, -100, 0, 20)
-    subtitleLabel.Position = UDim2.new(0, 20, 0, 30)
+    subtitleLabel.Position = UDim2.new(0, 15, 0, 28)
     subtitleLabel.Text = subtitle
     subtitleLabel.TextColor3 = Style.TextDim
     subtitleLabel.TextSize = 11
@@ -214,10 +187,10 @@ function ModernUI:CreateWindow(config)
     subtitleLabel.BackgroundTransparency = 1
     subtitleLabel.Parent = titleBar
     
-    -- Botón cerrar
+    -- Cerrar
     local closeBtn = Instance.new("TextButton")
-    closeBtn.Size = UDim2.new(0, 32, 0, 32)
-    closeBtn.Position = UDim2.new(1, -45, 0, 12)
+    closeBtn.Size = UDim2.new(0, 30, 0, 30)
+    closeBtn.Position = UDim2.new(1, -45, 0, 10)
     closeBtn.Text = "✕"
     closeBtn.TextColor3 = Style.TextDim
     closeBtn.TextSize = 16
@@ -226,26 +199,16 @@ function ModernUI:CreateWindow(config)
     closeBtn.BackgroundTransparency = 0.5
     closeBtn.BorderSizePixel = 0
     closeBtn.Parent = titleBar
-    applyCorner(closeBtn, 8)
-    
-    closeBtn.MouseEnter:Connect(function()
-        TweenService:Create(closeBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(200, 60, 60), BackgroundTransparency = 0.3}):Play()
-        TweenService:Create(closeBtn, TweenInfo.new(0.2), {TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
-    end)
-    
-    closeBtn.MouseLeave:Connect(function()
-        TweenService:Create(closeBtn, TweenInfo.new(0.2), {BackgroundColor3 = Style.Background, BackgroundTransparency = 0.5}):Play()
-        TweenService:Create(closeBtn, TweenInfo.new(0.2), {TextColor3 = Style.TextDim}):Play()
-    end)
+    applyCorner(closeBtn, 6)
     
     closeBtn.MouseButton1Click:Connect(function()
         gui:Destroy()
     end)
     
-    -- Contenedor de pestañas
+    -- Contenedor pestañas
     local tabContainer = Instance.new("Frame")
-    tabContainer.Size = UDim2.new(1, 0, 0, 45)
-    tabContainer.Position = UDim2.new(0, 0, 0, 55)
+    tabContainer.Size = UDim2.new(1, 0, 0, 40)
+    tabContainer.Position = UDim2.new(0, 0, 0, 50)
     tabContainer.BackgroundTransparency = 1
     tabContainer.Parent = mainFrame
     
@@ -258,70 +221,120 @@ function ModernUI:CreateWindow(config)
     tabPadding.PaddingLeft = UDim.new(0, 15)
     tabPadding.Parent = tabContainer
     
-    -- Contenedor de contenido
+    -- Contenedor contenido
     local contentContainer = Instance.new("Frame")
-    contentContainer.Size = UDim2.new(1, -20, 1, -110)
-    contentContainer.Position = UDim2.new(0, 10, 0, 105)
+    contentContainer.Size = UDim2.new(1, -20, 1, -100)
+    contentContainer.Position = UDim2.new(0, 10, 0, 95)
     contentContainer.BackgroundTransparency = 1
     contentContainer.Parent = mainFrame
     
-    -- Objeto ventana
+    -- Almacenar elementos
+    local elements = {}
+    local activeDropdown = nil
+    
+    -- Cerrar dropdown activo
+    local function closeActiveDropdown()
+        if activeDropdown and activeDropdown.Parent then
+            activeDropdown:Destroy()
+            activeDropdown = nil
+        end
+    end
+    
+    UserInputService.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            task.wait(0.05)
+            closeActiveDropdown()
+        end
+    end)
+    
     local window = {
         _gui = gui,
         _mainFrame = mainFrame,
         _contentContainer = contentContainer,
         _tabs = {},
         _currentTab = nil,
-        _elements = {},
+        _elements = elements,
+        _notify = function() end,
     }
     
-    -- Método para añadir pestaña
+    -- Notificación
+    function window:Notify(notification)
+        local notifyFrame = Instance.new("Frame")
+        notifyFrame.Size = UDim2.new(0, 300, 0, 55)
+        notifyFrame.Position = UDim2.new(1, -320, 1, -75)
+        notifyFrame.BackgroundColor3 = Style.BackgroundSecondary
+        notifyFrame.BackgroundTransparency = 0.1
+        notifyFrame.BorderSizePixel = 1
+        notifyFrame.BorderColor3 = Style.Border
+        notifyFrame.Parent = gui
+        applyCorner(notifyFrame, 8)
+        
+        local titleLabel = Instance.new("TextLabel")
+        titleLabel.Size = UDim2.new(1, -20, 0, 22)
+        titleLabel.Position = UDim2.new(0, 15, 0, 5)
+        titleLabel.Text = notification.Title or "Notificación"
+        titleLabel.TextColor3 = Style.Accent
+        titleLabel.TextSize = 14
+        titleLabel.Font = Enum.Font.GothamBold
+        titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+        titleLabel.BackgroundTransparency = 1
+        titleLabel.Parent = notifyFrame
+        
+        local contentLabel = Instance.new("TextLabel")
+        contentLabel.Size = UDim2.new(1, -20, 0, 28)
+        contentLabel.Position = UDim2.new(0, 15, 0, 27)
+        contentLabel.Text = notification.Content or ""
+        contentLabel.TextColor3 = Style.TextDim
+        contentLabel.TextSize = 12
+        contentLabel.Font = Enum.Font.Gotham
+        contentLabel.TextXAlignment = Enum.TextXAlignment.Left
+        contentLabel.TextYAlignment = Enum.TextYAlignment.Top
+        contentLabel.BackgroundTransparency = 1
+        contentLabel.Parent = notifyFrame
+        
+        task.wait(0.05)
+        notifyFrame:TweenPosition(UDim2.new(1, -320, 1, -75), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
+        
+        task.wait(notification.Duration or 3)
+        notifyFrame:TweenPosition(UDim2.new(1, -300, 1, -75), Enum.EasingDirection.In, Enum.EasingStyle.Quad, 0.3, true)
+        task.wait(0.3)
+        notifyFrame:Destroy()
+    end
+    
+    -- Añadir pestaña
     function window:AddTab(tabConfig)
         local tabName = tabConfig.Title or "Tab"
         local tabButton = Instance.new("TextButton")
-        tabButton.Size = UDim2.new(0, 110, 1, -5)
+        tabButton.Size = UDim2.new(0, 100, 1, -5)
         tabButton.Position = UDim2.new(0, 0, 0, 2)
         tabButton.Text = tabName
         tabButton.TextColor3 = Style.TextDim
         tabButton.TextSize = 13
         tabButton.Font = Enum.Font.GothamSemibold
         tabButton.BackgroundColor3 = Style.BackgroundSecondary
-        tabButton.BackgroundTransparency = 0.7
+        tabButton.BackgroundTransparency = 0.6
         tabButton.BorderSizePixel = 0
         tabButton.Parent = tabContainer
-        applyCorner(tabButton, 8)
+        applyCorner(tabButton, 6)
         
         local tabContent = Instance.new("ScrollingFrame")
         tabContent.Size = UDim2.new(1, 0, 1, 0)
         tabContent.BackgroundTransparency = 1
         tabContent.ScrollBarThickness = 6
         tabContent.ScrollBarImageColor3 = Style.Accent
-        tabContent.ScrollBarImageTransparency = 0.5
         tabContent.Visible = false
         tabContent.Parent = contentContainer
         
         local contentLayout = Instance.new("UIListLayout")
-        contentLayout.Padding = UDim.new(0, 12)
+        contentLayout.Padding = UDim.new(0, 10)
         contentLayout.Parent = tabContent
         
         local padding = Instance.new("UIPadding")
-        padding.PaddingLeft = UDim.new(0, 8)
-        padding.PaddingRight = UDim.new(0, 8)
-        padding.PaddingTop = UDim.new(0, 8)
-        padding.PaddingBottom = UDim.new(0, 8)
+        padding.PaddingLeft = UDim.new(0, 10)
+        padding.PaddingRight = UDim.new(0, 10)
+        padding.PaddingTop = UDim.new(0, 10)
+        padding.PaddingBottom = UDim.new(0, 10)
         padding.Parent = tabContent
-        
-        tabButton.MouseEnter:Connect(function()
-            if window._currentTab ~= tabName then
-                TweenService:Create(tabButton, TweenInfo.new(0.2), {BackgroundTransparency = 0.5, TextColor3 = Style.Text}):Play()
-            end
-        end)
-        
-        tabButton.MouseLeave:Connect(function()
-            if window._currentTab ~= tabName then
-                TweenService:Create(tabButton, TweenInfo.new(0.2), {BackgroundTransparency = 0.7, TextColor3 = Style.TextDim}):Play()
-            end
-        end)
         
         tabButton.MouseButton1Click:Connect(function()
             for _, content in pairs(window._contentContainer:GetChildren()) do
@@ -330,16 +343,19 @@ function ModernUI:CreateWindow(config)
                 end
             end
             for _, btn in pairs(window._tabs) do
-                TweenService:Create(btn.button, TweenInfo.new(0.2), {BackgroundTransparency = 0.7, TextColor3 = Style.TextDim}):Play()
+                btn.button.BackgroundTransparency = 0.6
+                btn.button.TextColor3 = Style.TextDim
             end
             tabContent.Visible = true
-            TweenService:Create(tabButton, TweenInfo.new(0.2), {BackgroundTransparency = 0.3, TextColor3 = Style.Accent}):Play()
+            tabButton.BackgroundTransparency = 0.2
+            tabButton.TextColor3 = Style.Accent
             window._currentTab = tabName
+            closeActiveDropdown()
         end)
         
         if next(window._tabs) == nil then
             tabContent.Visible = true
-            tabButton.BackgroundTransparency = 0.3
+            tabButton.BackgroundTransparency = 0.2
             tabButton.TextColor3 = Style.Accent
             window._currentTab = tabName
         end
@@ -351,19 +367,19 @@ function ModernUI:CreateWindow(config)
             
             AddSection = function(self, sectionTitle)
                 local sectionFrame = Instance.new("Frame")
-                sectionFrame.Size = UDim2.new(1, 0, 0, 38)
+                sectionFrame.Size = UDim2.new(1, 0, 0, 35)
                 sectionFrame.BackgroundColor3 = Style.BackgroundSecondary
                 sectionFrame.BackgroundTransparency = 0.5
                 sectionFrame.BorderSizePixel = 0
                 sectionFrame.Parent = tabContent
-                applyCorner(sectionFrame, 8)
+                applyCorner(sectionFrame, 6)
                 
                 local sectionLabel = Instance.new("TextLabel")
                 sectionLabel.Size = UDim2.new(1, -20, 1, 0)
                 sectionLabel.Position = UDim2.new(0, 15, 0, 0)
                 sectionLabel.Text = sectionTitle
                 sectionLabel.TextColor3 = Style.Accent
-                sectionLabel.TextSize = 13
+                sectionLabel.TextSize = 12
                 sectionLabel.Font = Enum.Font.GothamBold
                 sectionLabel.TextXAlignment = Enum.TextXAlignment.Left
                 sectionLabel.BackgroundTransparency = 1
@@ -372,20 +388,20 @@ function ModernUI:CreateWindow(config)
                 return sectionFrame
             end,
             
-            AddParagraph = function(self, paraConfig)
+            AddParagraph = function(self, config)
                 local frame = Instance.new("Frame")
-                frame.Size = UDim2.new(1, 0, 0, 55)
+                frame.Size = UDim2.new(1, 0, 0, 50)
                 frame.BackgroundColor3 = Style.BackgroundSecondary
                 frame.BackgroundTransparency = 0.5
                 frame.BorderSizePixel = 0
                 frame.Parent = tabContent
-                applyCorner(frame, 8)
+                applyCorner(frame, 6)
                 
-                if paraConfig.Title then
+                if config.Title then
                     local titleLabel = Instance.new("TextLabel")
                     titleLabel.Size = UDim2.new(1, -20, 0, 22)
                     titleLabel.Position = UDim2.new(0, 15, 0, 5)
-                    titleLabel.Text = paraConfig.Title
+                    titleLabel.Text = config.Title
                     titleLabel.TextColor3 = Style.Text
                     titleLabel.TextSize = 13
                     titleLabel.Font = Enum.Font.GothamSemibold
@@ -396,8 +412,8 @@ function ModernUI:CreateWindow(config)
                 
                 local contentLabel = Instance.new("TextLabel")
                 contentLabel.Size = UDim2.new(1, -20, 0, 30)
-                contentLabel.Position = UDim2.new(0, 15, 0, paraConfig.Title and 27 or 12)
-                contentLabel.Text = paraConfig.Content
+                contentLabel.Position = UDim2.new(0, 15, 0, config.Title and 27 or 12)
+                contentLabel.Text = config.Content
                 contentLabel.TextColor3 = Style.TextDim
                 contentLabel.TextSize = 12
                 contentLabel.Font = Enum.Font.Gotham
@@ -409,23 +425,23 @@ function ModernUI:CreateWindow(config)
             
             AddButton = function(self, btnConfig)
                 local btn = Instance.new("TextButton")
-                btn.Size = UDim2.new(1, 0, 0, 42)
+                btn.Size = UDim2.new(1, 0, 0, 40)
                 btn.Text = btnConfig.Title or "Button"
                 btn.TextColor3 = Style.Text
                 btn.TextSize = 14
                 btn.Font = Enum.Font.GothamSemibold
                 btn.BackgroundColor3 = Style.Accent
-                btn.BackgroundTransparency = 0.2
+                btn.BackgroundTransparency = 0.15
                 btn.BorderSizePixel = 0
                 btn.Parent = tabContent
-                applyCorner(btn, 8)
+                applyCorner(btn, 6)
                 
                 btn.MouseEnter:Connect(function()
-                    TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundTransparency = 0.05}):Play()
+                    btn.BackgroundTransparency = 0.05
                 end)
                 
                 btn.MouseLeave:Connect(function()
-                    TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundTransparency = 0.2}):Play()
+                    btn.BackgroundTransparency = 0.15
                 end)
                 
                 btn.MouseButton1Click:Connect(function()
@@ -438,12 +454,12 @@ function ModernUI:CreateWindow(config)
             AddToggle = function(self, toggleConfig)
                 local toggleId = toggleConfig.Id
                 local frame = Instance.new("Frame")
-                frame.Size = UDim2.new(1, 0, 0, 48)
+                frame.Size = UDim2.new(1, 0, 0, 45)
                 frame.BackgroundColor3 = Style.BackgroundSecondary
                 frame.BackgroundTransparency = 0.5
                 frame.BorderSizePixel = 0
                 frame.Parent = tabContent
-                applyCorner(frame, 8)
+                applyCorner(frame, 6)
                 
                 local label = Instance.new("TextLabel")
                 label.Size = UDim2.new(1, -70, 1, 0)
@@ -457,60 +473,64 @@ function ModernUI:CreateWindow(config)
                 label.Parent = frame
                 
                 local toggleBtn = Instance.new("TextButton")
-                toggleBtn.Size = UDim2.new(0, 52, 0, 28)
-                toggleBtn.Position = UDim2.new(1, -65, 0, 10)
+                toggleBtn.Size = UDim2.new(0, 50, 0, 26)
+                toggleBtn.Position = UDim2.new(1, -65, 0, 9)
                 toggleBtn.Text = ""
                 toggleBtn.BackgroundColor3 = Style.Background
-                toggleBtn.BackgroundTransparency = 0.5
+                toggleBtn.BackgroundTransparency = 0.4
                 toggleBtn.BorderSizePixel = 0
                 toggleBtn.Parent = frame
-                applyCorner(toggleBtn, 14)
+                applyCorner(toggleBtn, 13)
                 
-                local toggleIndicator = Instance.new("Frame")
-                toggleIndicator.Size = UDim2.new(0, 24, 0, 24)
-                toggleIndicator.Position = UDim2.new(0, 2, 0, 2)
-                toggleIndicator.BackgroundColor3 = Style.TextDim
-                toggleIndicator.BorderSizePixel = 0
-                toggleIndicator.Parent = toggleBtn
-                applyCorner(toggleIndicator, 12)
+                local indicator = Instance.new("Frame")
+                indicator.Size = UDim2.new(0, 22, 0, 22)
+                indicator.Position = UDim2.new(0, 2, 0, 2)
+                indicator.BackgroundColor3 = Style.TextDim
+                indicator.BorderSizePixel = 0
+                indicator.Parent = toggleBtn
+                applyCorner(indicator, 11)
                 
                 local state = toggleConfig.Default or false
                 
-                local function updateToggle()
+                local function update()
                     if state then
-                        TweenService:Create(toggleBtn, TweenInfo.new(0.15), {BackgroundColor3 = Style.Accent, BackgroundTransparency = 0.3}):Play()
-                        TweenService:Create(toggleIndicator, TweenInfo.new(0.15), {Position = UDim2.new(1, -26, 0, 2), BackgroundColor3 = Style.Background}):Play()
+                        toggleBtn.BackgroundColor3 = Style.Accent
+                        toggleBtn.BackgroundTransparency = 0.2
+                        indicator.Position = UDim2.new(1, -24, 0, 2)
+                        indicator.BackgroundColor3 = Style.Background
                     else
-                        TweenService:Create(toggleBtn, TweenInfo.new(0.15), {BackgroundColor3 = Style.Background, BackgroundTransparency = 0.5}):Play()
-                        TweenService:Create(toggleIndicator, TweenInfo.new(0.15), {Position = UDim2.new(0, 2, 0, 2), BackgroundColor3 = Style.TextDim}):Play()
+                        toggleBtn.BackgroundColor3 = Style.Background
+                        toggleBtn.BackgroundTransparency = 0.4
+                        indicator.Position = UDim2.new(0, 2, 0, 2)
+                        indicator.BackgroundColor3 = Style.TextDim
                     end
                 end
                 
                 toggleBtn.MouseButton1Click:Connect(function()
                     state = not state
-                    updateToggle()
+                    update()
                     if toggleConfig.Callback then toggleConfig.Callback(state) end
-                    if toggleId then
-                        window._elements[toggleId] = {get = function() return state end, set = function(v) state = v; updateToggle() end}
-                    end
                 end)
                 
-                updateToggle()
+                update()
                 
-                local obj = {SetValue = function(v) state = v; updateToggle() end, GetValue = function() return state end}
-                if toggleId then window._elements[toggleId] = obj end
+                local obj = {
+                    SetValue = function(v) state = v; update() end,
+                    GetValue = function() return state end
+                }
+                if toggleId then elements[toggleId] = obj end
                 return obj
             end,
             
             AddSlider = function(self, sliderConfig)
                 local sliderId = sliderConfig.Id
                 local frame = Instance.new("Frame")
-                frame.Size = UDim2.new(1, 0, 0, 75)
+                frame.Size = UDim2.new(1, 0, 0, 70)
                 frame.BackgroundColor3 = Style.BackgroundSecondary
                 frame.BackgroundTransparency = 0.5
                 frame.BorderSizePixel = 0
                 frame.Parent = tabContent
-                applyCorner(frame, 8)
+                applyCorner(frame, 6)
                 
                 local label = Instance.new("TextLabel")
                 label.Size = UDim2.new(1, -80, 0, 25)
@@ -534,29 +554,29 @@ function ModernUI:CreateWindow(config)
                 valueLabel.BackgroundTransparency = 1
                 valueLabel.Parent = frame
                 
-                local sliderTrack = Instance.new("Frame")
-                sliderTrack.Size = UDim2.new(1, -30, 0, 4)
-                sliderTrack.Position = UDim2.new(0, 15, 0, 48)
-                sliderTrack.BackgroundColor3 = Style.Background
-                sliderTrack.BackgroundTransparency = 0.6
-                sliderTrack.BorderSizePixel = 0
-                sliderTrack.Parent = frame
-                applyCorner(sliderTrack, 2)
+                local track = Instance.new("Frame")
+                track.Size = UDim2.new(1, -30, 0, 4)
+                track.Position = UDim2.new(0, 15, 0, 48)
+                track.BackgroundColor3 = Style.Background
+                track.BackgroundTransparency = 0.5
+                track.BorderSizePixel = 0
+                track.Parent = frame
+                applyCorner(track, 2)
                 
-                local sliderFill = Instance.new("Frame")
-                sliderFill.Size = UDim2.new(0, 0, 1, 0)
-                sliderFill.BackgroundColor3 = Style.Accent
-                sliderFill.BorderSizePixel = 0
-                sliderFill.Parent = sliderTrack
-                applyCorner(sliderFill, 2)
+                local fill = Instance.new("Frame")
+                fill.Size = UDim2.new(0, 0, 1, 0)
+                fill.BackgroundColor3 = Style.Accent
+                fill.BorderSizePixel = 0
+                fill.Parent = track
+                applyCorner(fill, 2)
                 
-                local sliderKnob = Instance.new("Frame")
-                sliderKnob.Size = UDim2.new(0, 16, 0, 16)
-                sliderKnob.Position = UDim2.new(0, -8, 0, -6)
-                sliderKnob.BackgroundColor3 = Style.Accent
-                sliderKnob.BorderSizePixel = 0
-                sliderKnob.Parent = sliderFill
-                applyCorner(sliderKnob, 8)
+                local knob = Instance.new("Frame")
+                knob.Size = UDim2.new(0, 14, 0, 14)
+                knob.Position = UDim2.new(0, -7, 0, -5)
+                knob.BackgroundColor3 = Style.Accent
+                knob.BorderSizePixel = 0
+                knob.Parent = fill
+                applyCorner(knob, 7)
                 
                 local min = sliderConfig.Min or 0
                 local max = sliderConfig.Max or 100
@@ -565,19 +585,17 @@ function ModernUI:CreateWindow(config)
                 
                 local function updateSlider()
                     local percent = (value - min) / (max - min)
-                    sliderFill.Size = UDim2.new(percent, 0, 1, 0)
+                    fill.Size = UDim2.new(percent, 0, 1, 0)
                     valueLabel.Text = tostring(value)
                     if sliderConfig.Callback then sliderConfig.Callback(value) end
-                    if sliderId then
-                        window._elements[sliderId] = {get = function() return value end, set = function(v) value = v; updateSlider() end}
-                    end
                 end
                 
                 local dragging = false
-                sliderTrack.InputBegan:Connect(function(input)
+                
+                track.InputBegan:Connect(function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 then
                         dragging = true
-                        local percent = math.clamp((input.Position.X - sliderTrack.AbsolutePosition.X) / sliderTrack.AbsoluteSize.X, 0, 1)
+                        local percent = math.clamp((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
                         value = min + (max - min) * percent
                         if rounding > 0 then
                             value = math.floor(value * (10^rounding) + 0.5) / (10^rounding)
@@ -586,9 +604,12 @@ function ModernUI:CreateWindow(config)
                     end
                 end)
                 
-                UserInputService.InputChanged:Connect(function(input)
+                local moveConn
+                local endConn
+                
+                moveConn = UserInputService.InputChanged:Connect(function(input)
                     if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                        local percent = math.clamp((input.Position.X - sliderTrack.AbsolutePosition.X) / sliderTrack.AbsoluteSize.X, 0, 1)
+                        local percent = math.clamp((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
                         value = min + (max - min) * percent
                         if rounding > 0 then
                             value = math.floor(value * (10^rounding) + 0.5) / (10^rounding)
@@ -597,7 +618,7 @@ function ModernUI:CreateWindow(config)
                     end
                 end)
                 
-                UserInputService.InputEnded:Connect(function(input)
+                endConn = UserInputService.InputEnded:Connect(function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 then
                         dragging = false
                     end
@@ -605,20 +626,23 @@ function ModernUI:CreateWindow(config)
                 
                 updateSlider()
                 
-                local obj = {SetValue = function(v) value = math.clamp(v, min, max); updateSlider() end, GetValue = function() return value end}
-                if sliderId then window._elements[sliderId] = obj end
+                local obj = {
+                    SetValue = function(v) value = math.clamp(v, min, max); updateSlider() end,
+                    GetValue = function() return value end
+                }
+                if sliderId then elements[sliderId] = obj end
                 return obj
             end,
             
             AddInput = function(self, inputConfig)
                 local inputId = inputConfig.Id
                 local frame = Instance.new("Frame")
-                frame.Size = UDim2.new(1, 0, 0, 75)
+                frame.Size = UDim2.new(1, 0, 0, 70)
                 frame.BackgroundColor3 = Style.BackgroundSecondary
                 frame.BackgroundTransparency = 0.5
                 frame.BorderSizePixel = 0
                 frame.Parent = tabContent
-                applyCorner(frame, 8)
+                applyCorner(frame, 6)
                 
                 local label = Instance.new("TextLabel")
                 label.Size = UDim2.new(1, -20, 0, 25)
@@ -631,63 +655,58 @@ function ModernUI:CreateWindow(config)
                 label.BackgroundTransparency = 1
                 label.Parent = frame
                 
-                local textBox = Instance.new("TextBox")
-                textBox.Size = UDim2.new(1, -30, 0, 35)
-                textBox.Position = UDim2.new(0, 15, 0, 35)
-                textBox.PlaceholderText = inputConfig.Placeholder or ""
-                textBox.Text = tostring(inputConfig.Default or "")
-                textBox.TextColor3 = Style.Text
-                textBox.TextSize = 13
-                textBox.Font = Enum.Font.Gotham
-                textBox.BackgroundColor3 = Style.Background
-                textBox.BackgroundTransparency = 0.5
-                textBox.BorderSizePixel = 0
-                textBox.Parent = frame
-                applyCorner(textBox, 6)
+                local box = Instance.new("TextBox")
+                box.Size = UDim2.new(1, -30, 0, 35)
+                box.Position = UDim2.new(0, 15, 0, 35)
+                box.PlaceholderText = inputConfig.Placeholder or ""
+                box.Text = tostring(inputConfig.Default or "")
+                box.TextColor3 = Style.Text
+                box.TextSize = 13
+                box.Font = Enum.Font.Gotham
+                box.BackgroundColor3 = Style.Background
+                box.BackgroundTransparency = 0.4
+                box.BorderSizePixel = 0
+                box.Parent = frame
+                applyCorner(box, 6)
                 
-                local function onFocusLost()
+                box.FocusLost:Connect(function()
                     if inputConfig.Callback then
                         if inputConfig.Numeric then
-                            local num = tonumber(textBox.Text)
+                            local num = tonumber(box.Text)
                             if num then
                                 inputConfig.Callback(num)
-                                if inputId then
-                                    window._elements[inputId] = {get = function() return num end, set = function(v) textBox.Text = tostring(v) end}
-                                end
                             end
                         else
-                            inputConfig.Callback(textBox.Text)
-                            if inputId then
-                                window._elements[inputId] = {get = function() return textBox.Text end, set = function(v) textBox.Text = v end}
-                            end
+                            inputConfig.Callback(box.Text)
                         end
                     end
-                end
+                end)
                 
-                textBox.FocusLost:Connect(onFocusLost)
-                
-                local obj = {SetValue = function(v) textBox.Text = tostring(v) end, GetValue = function() 
-                    if inputConfig.Numeric then return tonumber(textBox.Text) or 0 end
-                    return textBox.Text 
-                end}
-                if inputId then window._elements[inputId] = obj end
+                local obj = {
+                    SetValue = function(v) box.Text = tostring(v) end,
+                    GetValue = function() 
+                        if inputConfig.Numeric then return tonumber(box.Text) or 0 end
+                        return box.Text 
+                    end
+                }
+                if inputId then elements[inputId] = obj end
                 return obj
             end,
             
-            AddDropdown = function(self, dropdownConfig)
-                local dropdownId = dropdownConfig.Id
+            AddDropdown = function(self, dropConfig)
+                local dropId = dropConfig.Id
                 local frame = Instance.new("Frame")
-                frame.Size = UDim2.new(1, 0, 0, 75)
+                frame.Size = UDim2.new(1, 0, 0, 70)
                 frame.BackgroundColor3 = Style.BackgroundSecondary
                 frame.BackgroundTransparency = 0.5
                 frame.BorderSizePixel = 0
                 frame.Parent = tabContent
-                applyCorner(frame, 8)
+                applyCorner(frame, 6)
                 
                 local label = Instance.new("TextLabel")
                 label.Size = UDim2.new(1, -20, 0, 25)
                 label.Position = UDim2.new(0, 15, 0, 8)
-                label.Text = dropdownConfig.Title
+                label.Text = dropConfig.Title
                 label.TextColor3 = Style.Text
                 label.TextSize = 13
                 label.Font = Enum.Font.Gotham
@@ -698,126 +717,76 @@ function ModernUI:CreateWindow(config)
                 local dropdownBtn = Instance.new("TextButton")
                 dropdownBtn.Size = UDim2.new(1, -30, 0, 35)
                 dropdownBtn.Position = UDim2.new(0, 15, 0, 35)
-                dropdownBtn.Text = dropdownConfig.Values[dropdownConfig.Default or 1] or dropdownConfig.Values[1]
+                dropdownBtn.Text = dropConfig.Values[dropConfig.Default or 1] or dropConfig.Values[1]
                 dropdownBtn.TextColor3 = Style.Text
                 dropdownBtn.TextSize = 13
                 dropdownBtn.Font = Enum.Font.Gotham
                 dropdownBtn.BackgroundColor3 = Style.Background
-                dropdownBtn.BackgroundTransparency = 0.5
+                dropdownBtn.BackgroundTransparency = 0.4
                 dropdownBtn.BorderSizePixel = 0
                 dropdownBtn.Parent = frame
                 applyCorner(dropdownBtn, 6)
                 
-                local valueIndex = dropdownConfig.Default or 1
-                local values = dropdownConfig.Values
+                local selectedIndex = dropConfig.Default or 1
+                local values = dropConfig.Values
                 
                 dropdownBtn.MouseButton1Click:Connect(function()
-                    local dropdownMenu = Instance.new("Frame")
-                    dropdownMenu.Size = UDim2.new(1, -30, 0, math.min(#values * 35, 150))
-                    dropdownMenu.Position = UDim2.new(0, 15, 0, 70)
-                    dropdownMenu.BackgroundColor3 = Style.Background
-                    dropdownMenu.BackgroundTransparency = 0.1
-                    dropdownMenu.BorderSizePixel = 1
-                    dropdownMenu.BorderColor3 = Style.Border
-                    dropdownMenu.Parent = frame
-                    applyCorner(dropdownMenu, 6)
+                    closeActiveDropdown()
+                    
+                    local menu = Instance.new("Frame")
+                    menu.Size = UDim2.new(1, -30, 0, math.min(#values * 35, 140))
+                    menu.Position = UDim2.new(0, 15, 0, 70)
+                    menu.BackgroundColor3 = Style.Background
+                    menu.BackgroundTransparency = 0.15
+                    menu.BorderSizePixel = 1
+                    menu.BorderColor3 = Style.Border
+                    menu.Parent = frame
+                    applyCorner(menu, 6)
+                    activeDropdown = menu
                     
                     local menuLayout = Instance.new("UIListLayout")
                     menuLayout.Padding = UDim.new(0, 2)
-                    menuLayout.Parent = dropdownMenu
+                    menuLayout.Parent = menu
                     
                     for i, v in pairs(values) do
-                        local optBtn = Instance.new("TextButton")
-                        optBtn.Size = UDim2.new(1, 0, 0, 32)
-                        optBtn.Text = v
-                        optBtn.TextColor3 = Style.Text
-                        optBtn.TextSize = 12
-                        optBtn.Font = Enum.Font.Gotham
-                        optBtn.BackgroundColor3 = Style.BackgroundSecondary
-                        optBtn.BackgroundTransparency = 0.5
-                        optBtn.BorderSizePixel = 0
-                        optBtn.Parent = dropdownMenu
+                        local opt = Instance.new("TextButton")
+                        opt.Size = UDim2.new(1, 0, 0, 32)
+                        opt.Text = v
+                        opt.TextColor3 = Style.Text
+                        opt.TextSize = 12
+                        opt.Font = Enum.Font.Gotham
+                        opt.BackgroundColor3 = Style.BackgroundSecondary
+                        opt.BackgroundTransparency = 0.4
+                        opt.BorderSizePixel = 0
+                        opt.Parent = menu
                         
-                        optBtn.MouseButton1Click:Connect(function()
-                            valueIndex = i
+                        opt.MouseButton1Click:Connect(function()
+                            selectedIndex = i
                             dropdownBtn.Text = v
-                            dropdownMenu:Destroy()
-                            if dropdownConfig.Callback then dropdownConfig.Callback(v) end
-                            if dropdownId then
-                                window._elements[dropdownId] = {get = function() return v end, set = function(idx) valueIndex = idx; dropdownBtn.Text = values[idx] end}
+                            if dropConfig.Callback then dropConfig.Callback(v) end
+                            if dropId then
+                                elements[dropId] = {
+                                    GetValue = function() return v end,
+                                    SetValue = function(idx) selectedIndex = idx; dropdownBtn.Text = values[idx] end
+                                }
                             end
+                            menu:Destroy()
+                            activeDropdown = nil
                         end)
                     end
-                    
-                    local function closeMenu()
-                        if dropdownMenu and dropdownMenu.Parent then
-                            dropdownMenu:Destroy()
-                        end
-                    end
-                    
-                    task.wait(0.1)
-                    local connection
-                    connection = UserInputService.InputBegan:Connect(function(input)
-                        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                            task.wait(0.05)
-                            closeMenu()
-                            connection:Disconnect()
-                        end
-                    end)
                 end)
                 
-                local obj = {SetValue = function(i) valueIndex = i; dropdownBtn.Text = values[i] end, GetValue = function() return values[valueIndex] end}
-                if dropdownId then window._elements[dropdownId] = obj end
+                local obj = {
+                    SetValue = function(i) selectedIndex = i; dropdownBtn.Text = values[i] end,
+                    GetValue = function() return values[selectedIndex] end
+                }
+                if dropId then elements[dropId] = obj end
                 return obj
             end,
         }
         
         window._tabs[tabName] = tabObj
         return tabObj
-    end
-    
-    -- Notificación
-    function window:Notify(notification)
-        local notifyFrame = Instance.new("Frame")
-        notifyFrame.Size = UDim2.new(0, 320, 0, 65)
-        notifyFrame.Position = UDim2.new(1, -340, 1, -85)
-        notifyFrame.BackgroundColor3 = Style.BackgroundSecondary
-        notifyFrame.BackgroundTransparency = 0.15
-        notifyFrame.BorderSizePixel = 1
-        notifyFrame.BorderColor3 = Style.Border
-        notifyFrame.Parent = gui
-        applyCorner(notifyFrame, 8)
-        
-        local titleLabel = Instance.new("TextLabel")
-        titleLabel.Size = UDim2.new(1, -25, 0, 25)
-        titleLabel.Position = UDim2.new(0, 15, 0, 8)
-        titleLabel.Text = notification.Title or "Notificación"
-        titleLabel.TextColor3 = Style.Accent
-        titleLabel.TextSize = 14
-        titleLabel.Font = Enum.Font.GothamBold
-        titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-        titleLabel.BackgroundTransparency = 1
-        titleLabel.Parent = notifyFrame
-        
-        local contentLabel = Instance.new("TextLabel")
-        contentLabel.Size = UDim2.new(1, -25, 0, 35)
-        contentLabel.Position = UDim2.new(0, 15, 0, 30)
-        contentLabel.Text = notification.Content or ""
-        contentLabel.TextColor3 = Style.TextDim
-        contentLabel.TextSize = 12
-        contentLabel.Font = Enum.Font.Gotham
-        contentLabel.TextXAlignment = Enum.TextXAlignment.Left
-        contentLabel.TextYAlignment = Enum.TextYAlignment.Top
-        contentLabel.BackgroundTransparency = 1
-        contentLabel.Parent = notifyFrame
-        
-        notifyFrame.Position = UDim2.new(1, -320, 1, -85)
-        notifyFrame:TweenPosition(UDim2.new(1, -340, 1, -85), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
-        
-        task.wait(notification.Duration or 3)
-        notifyFrame:TweenPosition(UDim2.new(1, -320, 1, -85), Enum.EasingDirection.In, Enum.EasingStyle.Quad, 0.3, true)
-        task.wait(0.3)
-        notifyFrame:Destroy()
     end
     
     -- Sistema de configuración
@@ -836,22 +805,24 @@ function ModernUI:CreateWindow(config)
         
         configTab:AddSection("Gestión de configuraciones")
         
-        -- Input para nombre
         local nameInput = configTab:AddInput({
-            Id = "cfg_name",
             Title = "Nombre de la configuración",
             Placeholder = "Ej: MiConfig",
         })
         
-        -- Dropdown de configuraciones
-        local configs = ConfigSystem:ListConfigs()
-        local dropdown = configTab:AddDropdown({
-            Id = "cfg_dropdown",
+        local refreshDropdown = function()
+            local configs = FileSystem:List()
+            if #configs > 0 then
+                return configs
+            end
+            return {"-- Vacío --"}
+        end
+        
+        local configDropdown = configTab:AddDropdown({
             Title = "Configuraciones guardadas",
-            Values = #configs > 0 and configs or {"-- Vacío --"},
+            Values = refreshDropdown(),
         })
         
-        -- Botón guardar
         configTab:AddButton({
             Title = "💾 Guardar configuración",
             Callback = function()
@@ -862,47 +833,48 @@ function ModernUI:CreateWindow(config)
                 end
                 
                 local data = {}
-                for id, element in pairs(window._elements) do
+                for id, element in pairs(elements) do
                     if element.GetValue then
                         data[id] = element:GetValue()
                     end
                 end
                 
-                ConfigSystem:SaveConfig(name, data)
+                FileSystem:Save(name, data)
                 window:Notify({Title = "Guardado", Content = "Configuración '" .. name .. "' guardada", Duration = 2})
             end
         })
         
-        -- Botón cargar
         configTab:AddButton({
             Title = "📂 Cargar configuración",
             Callback = function()
-                local selected = dropdown:GetValue()
-                if selected == "-- Vacío --" or not selected then
+                local selected = configDropdown:GetValue()
+                if selected == "-- Vacío --" then
                     window:Notify({Title = "Error", Content = "No hay configuración seleccionada", Duration = 2})
                     return
                 end
                 
-                local data = ConfigSystem:LoadConfig(selected)
+                local data = FileSystem:Load(selected)
                 if data then
                     for id, value in pairs(data) do
-                        if window._elements[id] and window._elements[id].SetValue then
-                            window._elements[id]:SetValue(value)
+                        if elements[id] and elements[id].SetValue then
+                            elements[id]:SetValue(value)
                         end
                     end
                     window:Notify({Title = "Cargado", Content = "Configuración '" .. selected .. "' cargada", Duration = 2})
+                else
+                    window:Notify({Title = "Error", Content = "No se pudo cargar", Duration = 2})
                 end
             end
         })
         
         configTab:AddSection("Información")
         configTab:AddParagraph({
-            Title = "📁 Carpeta de configuraciones",
-            Content = safeGameName
+            Title = "📁 Juego actual",
+            Content = gameName
         })
     end
     
     return window
 end
 
-return ModernUI
+return CIDUI
