@@ -1,7 +1,8 @@
 --[[
-    CID UI Library v1.0
-    Estilo Fluent, completamente funcional
-    Sistema de configuraciones por juego
+    CID UI Library v2.0
+    - Dropdown funcionando correctamente
+    - Sistema de configuraciones en tiempo real
+    - Actualización automática de la lista de configs
 ]]
 
 local CIDUI = {}
@@ -19,7 +20,7 @@ local gamePlaceId = game.PlaceId
 local gameName = game:GetService("MarketplaceService"):GetProductInfo(gamePlaceId).Name or tostring(gamePlaceId)
 local safeGameName = gameName:gsub("[^%w]", "_")
 
--- Sistema de archivos seguro
+-- Sistema de archivos
 local FileSystem = {}
 
 function FileSystem:GetGameFolder()
@@ -42,14 +43,17 @@ function FileSystem:Save(name, data)
     self:EnsureFolders()
     local json = HttpService:JSONEncode(data)
     local path = self:GetGameFolder() .. "/" .. name .. ".txt"
+    local success = false
     pcall(function()
         if writefile then
             writefile(path, json)
+            success = true
         elseif syn and syn.writefile then
             syn.writefile(path, json)
+            success = true
         end
     end)
-    return true
+    return success
 end
 
 function FileSystem:Load(name)
@@ -89,17 +93,16 @@ function FileSystem:List()
     return configs
 end
 
--- Estilo (semi-transparente, como Fluent)
+-- Estilo
 local Style = {
-    Background = Color3.fromRGB(30, 30, 35),
-    BackgroundTrans = 0.92,
-    BackgroundSecondary = Color3.fromRGB(40, 40, 48),
-    BackgroundSecondaryTrans = 0.94,
+    Background = Color3.fromRGB(28, 28, 33),
+    BackgroundTrans = 0.88,
+    BackgroundSecondary = Color3.fromRGB(38, 38, 45),
+    BackgroundSecondaryTrans = 0.92,
     Accent = Color3.fromRGB(0, 120, 215),
-    AccentHover = Color3.fromRGB(0, 140, 240),
     Text = Color3.fromRGB(240, 240, 245),
     TextDim = Color3.fromRGB(170, 175, 190),
-    Border = Color3.fromRGB(60, 65, 75),
+    Border = Color3.fromRGB(55, 60, 70),
     CornerRadius = 8,
 }
 
@@ -119,7 +122,6 @@ function CIDUI:CreateWindow(config)
     local gui = Instance.new("ScreenGui")
     gui.Name = "CIDUI"
     gui.Parent = game:GetService("CoreGui")
-    gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     
     local mainFrame = Instance.new("Frame")
     mainFrame.Size = size
@@ -132,7 +134,7 @@ function CIDUI:CreateWindow(config)
     mainFrame.Parent = gui
     applyCorner(mainFrame)
     
-    -- Arrastrable
+    -- Arrastrar
     local dragging = false
     local dragStart, startPos
     
@@ -240,6 +242,7 @@ function CIDUI:CreateWindow(config)
         end
     end
     
+    -- Click fuera cierra dropdown
     UserInputService.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             task.wait(0.05)
@@ -249,12 +252,9 @@ function CIDUI:CreateWindow(config)
     
     local window = {
         _gui = gui,
-        _mainFrame = mainFrame,
-        _contentContainer = contentContainer,
         _tabs = {},
         _currentTab = nil,
         _elements = elements,
-        _notify = function() end,
     }
     
     -- Notificación
@@ -293,11 +293,8 @@ function CIDUI:CreateWindow(config)
         contentLabel.Parent = notifyFrame
         
         task.wait(0.05)
-        notifyFrame:TweenPosition(UDim2.new(1, -320, 1, -75), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
         
         task.wait(notification.Duration or 3)
-        notifyFrame:TweenPosition(UDim2.new(1, -300, 1, -75), Enum.EasingDirection.In, Enum.EasingStyle.Quad, 0.3, true)
-        task.wait(0.3)
         notifyFrame:Destroy()
     end
     
@@ -337,7 +334,7 @@ function CIDUI:CreateWindow(config)
         padding.Parent = tabContent
         
         tabButton.MouseButton1Click:Connect(function()
-            for _, content in pairs(window._contentContainer:GetChildren()) do
+            for _, content in pairs(contentContainer:GetChildren()) do
                 if content:IsA("ScrollingFrame") then
                     content.Visible = false
                 end
@@ -384,11 +381,10 @@ function CIDUI:CreateWindow(config)
                 sectionLabel.TextXAlignment = Enum.TextXAlignment.Left
                 sectionLabel.BackgroundTransparency = 1
                 sectionLabel.Parent = sectionFrame
-                
                 return sectionFrame
             end,
             
-            AddParagraph = function(self, config)
+            AddParagraph = function(self, paraConfig)
                 local frame = Instance.new("Frame")
                 frame.Size = UDim2.new(1, 0, 0, 50)
                 frame.BackgroundColor3 = Style.BackgroundSecondary
@@ -397,11 +393,11 @@ function CIDUI:CreateWindow(config)
                 frame.Parent = tabContent
                 applyCorner(frame, 6)
                 
-                if config.Title then
+                if paraConfig.Title then
                     local titleLabel = Instance.new("TextLabel")
                     titleLabel.Size = UDim2.new(1, -20, 0, 22)
                     titleLabel.Position = UDim2.new(0, 15, 0, 5)
-                    titleLabel.Text = config.Title
+                    titleLabel.Text = paraConfig.Title
                     titleLabel.TextColor3 = Style.Text
                     titleLabel.TextSize = 13
                     titleLabel.Font = Enum.Font.GothamSemibold
@@ -412,8 +408,8 @@ function CIDUI:CreateWindow(config)
                 
                 local contentLabel = Instance.new("TextLabel")
                 contentLabel.Size = UDim2.new(1, -20, 0, 30)
-                contentLabel.Position = UDim2.new(0, 15, 0, config.Title and 27 or 12)
-                contentLabel.Text = config.Content
+                contentLabel.Position = UDim2.new(0, 15, 0, paraConfig.Title and 27 or 12)
+                contentLabel.Text = paraConfig.Content
                 contentLabel.TextColor3 = Style.TextDim
                 contentLabel.TextSize = 12
                 contentLabel.Font = Enum.Font.Gotham
@@ -436,18 +432,9 @@ function CIDUI:CreateWindow(config)
                 btn.Parent = tabContent
                 applyCorner(btn, 6)
                 
-                btn.MouseEnter:Connect(function()
-                    btn.BackgroundTransparency = 0.05
-                end)
-                
-                btn.MouseLeave:Connect(function()
-                    btn.BackgroundTransparency = 0.15
-                end)
-                
                 btn.MouseButton1Click:Connect(function()
                     if btnConfig.Callback then btnConfig.Callback() end
                 end)
-                
                 return btn
             end,
             
@@ -604,10 +591,7 @@ function CIDUI:CreateWindow(config)
                     end
                 end)
                 
-                local moveConn
-                local endConn
-                
-                moveConn = UserInputService.InputChanged:Connect(function(input)
+                UserInputService.InputChanged:Connect(function(input)
                     if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
                         local percent = math.clamp((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
                         value = min + (max - min) * percent
@@ -618,7 +602,7 @@ function CIDUI:CreateWindow(config)
                     end
                 end)
                 
-                endConn = UserInputService.InputEnded:Connect(function(input)
+                UserInputService.InputEnded:Connect(function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 then
                         dragging = false
                     end
@@ -695,6 +679,11 @@ function CIDUI:CreateWindow(config)
             
             AddDropdown = function(self, dropConfig)
                 local dropId = dropConfig.Id
+                local values = {}
+                for i, v in pairs(dropConfig.Values) do
+                    table.insert(values, v)
+                end
+                
                 local frame = Instance.new("Frame")
                 frame.Size = UDim2.new(1, 0, 0, 70)
                 frame.BackgroundColor3 = Style.BackgroundSecondary
@@ -717,7 +706,8 @@ function CIDUI:CreateWindow(config)
                 local dropdownBtn = Instance.new("TextButton")
                 dropdownBtn.Size = UDim2.new(1, -30, 0, 35)
                 dropdownBtn.Position = UDim2.new(0, 15, 0, 35)
-                dropdownBtn.Text = dropConfig.Values[dropConfig.Default or 1] or dropConfig.Values[1]
+                local defaultIndex = dropConfig.Default or 1
+                dropdownBtn.Text = values[defaultIndex] or values[1]
                 dropdownBtn.TextColor3 = Style.Text
                 dropdownBtn.TextSize = 13
                 dropdownBtn.Font = Enum.Font.Gotham
@@ -727,17 +717,16 @@ function CIDUI:CreateWindow(config)
                 dropdownBtn.Parent = frame
                 applyCorner(dropdownBtn, 6)
                 
-                local selectedIndex = dropConfig.Default or 1
-                local values = dropConfig.Values
+                local selectedValue = dropdownBtn.Text
                 
                 dropdownBtn.MouseButton1Click:Connect(function()
                     closeActiveDropdown()
                     
                     local menu = Instance.new("Frame")
-                    menu.Size = UDim2.new(1, -30, 0, math.min(#values * 35, 140))
+                    menu.Size = UDim2.new(1, -30, 0, math.min(#values * 35, 150))
                     menu.Position = UDim2.new(0, 15, 0, 70)
                     menu.BackgroundColor3 = Style.Background
-                    menu.BackgroundTransparency = 0.15
+                    menu.BackgroundTransparency = 0.1
                     menu.BorderSizePixel = 1
                     menu.BorderColor3 = Style.Border
                     menu.Parent = frame
@@ -761,15 +750,9 @@ function CIDUI:CreateWindow(config)
                         opt.Parent = menu
                         
                         opt.MouseButton1Click:Connect(function()
-                            selectedIndex = i
+                            selectedValue = v
                             dropdownBtn.Text = v
                             if dropConfig.Callback then dropConfig.Callback(v) end
-                            if dropId then
-                                elements[dropId] = {
-                                    GetValue = function() return v end,
-                                    SetValue = function(idx) selectedIndex = idx; dropdownBtn.Text = values[idx] end
-                                }
-                            end
                             menu:Destroy()
                             activeDropdown = nil
                         end)
@@ -777,8 +760,16 @@ function CIDUI:CreateWindow(config)
                 end)
                 
                 local obj = {
-                    SetValue = function(i) selectedIndex = i; dropdownBtn.Text = values[i] end,
-                    GetValue = function() return values[selectedIndex] end
+                    SetValue = function(newValue)
+                        for i, v in pairs(values) do
+                            if v == newValue then
+                                selectedValue = v
+                                dropdownBtn.Text = v
+                                break
+                            end
+                        end
+                    end,
+                    GetValue = function() return selectedValue end
                 }
                 if dropId then elements[dropId] = obj end
                 return obj
@@ -810,25 +801,59 @@ function CIDUI:CreateWindow(config)
             Placeholder = "Ej: MiConfig",
         })
         
-        local refreshDropdown = function()
+        -- Variables para el dropdown
+        local configValues = {"-- Vacío --"}
+        local configDropdownObj = nil
+        local lastConfigs = {}
+        
+        -- Función para actualizar el dropdown
+        local function refreshConfigList()
             local configs = FileSystem:List()
+            local newValues = {}
             if #configs > 0 then
-                return configs
+                newValues = configs
+            else
+                newValues = {"-- Vacío --"}
             end
-            return {"-- Vacío --"}
+            
+            -- Solo actualizar si hay cambios
+            local changed = false
+            if #lastConfigs ~= #newValues then
+                changed = true
+            else
+                for i = 1, #lastConfigs do
+                    if lastConfigs[i] ~= newValues[i] then
+                        changed = true
+                        break
+                    end
+                end
+            end
+            
+            if changed and configDropdownObj then
+                lastConfigs = newValues
+                -- Actualizar el dropdown
+                local currentVal = configDropdownObj:GetValue()
+                configDropdownObj:SetValue(newValues[1] or "-- Vacío --")
+            end
         end
         
-        local configDropdown = configTab:AddDropdown({
+        -- Crear dropdown
+        configDropdownObj = configTab:AddDropdown({
+            Id = "config_dropdown",
             Title = "Configuraciones guardadas",
-            Values = refreshDropdown(),
+            Values = configValues,
+            Callback = function(selected)
+                -- Solo seleccionar
+            end
         })
         
+        -- Botón guardar
         configTab:AddButton({
             Title = "💾 Guardar configuración",
             Callback = function()
                 local name = nameInput:GetValue()
-                if name == "" then
-                    window:Notify({Title = "Error", Content = "Ingresa un nombre", Duration = 2})
+                if name == "" or name == "-- Vacío --" then
+                    window:Notify({Title = "Error", Content = "Ingresa un nombre válido", Duration = 2})
                     return
                 end
                 
@@ -839,15 +864,20 @@ function CIDUI:CreateWindow(config)
                     end
                 end
                 
-                FileSystem:Save(name, data)
-                window:Notify({Title = "Guardado", Content = "Configuración '" .. name .. "' guardada", Duration = 2})
+                if FileSystem:Save(name, data) then
+                    window:Notify({Title = "Guardado", Content = "Configuración '" .. name .. "' guardada", Duration = 2})
+                    refreshConfigList()
+                else
+                    window:Notify({Title = "Error", Content = "No se pudo guardar", Duration = 2})
+                end
             end
         })
         
+        -- Botón cargar
         configTab:AddButton({
             Title = "📂 Cargar configuración",
             Callback = function()
-                local selected = configDropdown:GetValue()
+                local selected = configDropdownObj:GetValue()
                 if selected == "-- Vacío --" then
                     window:Notify({Title = "Error", Content = "No hay configuración seleccionada", Duration = 2})
                     return
@@ -867,10 +897,13 @@ function CIDUI:CreateWindow(config)
             end
         })
         
+        -- Inicializar lista
+        refreshConfigList()
+        
         configTab:AddSection("Información")
         configTab:AddParagraph({
-            Title = "📁 Juego actual",
-            Content = gameName
+            Title = "📁 Carpeta actual",
+            Content = "CID-UI_CONFIGS/" .. safeGameName
         })
     end
     
