@@ -1,6 +1,6 @@
 local Library = {
     Name = "CID UI",
-    Version = "0.0.2"
+    Version = "1.0.0"
 }
 
 local Players = game:GetService("Players")
@@ -177,7 +177,7 @@ function Library:CreateWindow(config)
     header.Parent = main
 
     local dragArea = Instance.new("Frame")
-    dragArea.Size = UDim2.new(1, -100, 1, 0)
+    dragArea.Size = UDim2.fromOffset(math.max(115, math.min(150, width - 230)), 68)
     dragArea.BackgroundTransparency = 1
     dragArea.Active = true
     dragArea.Parent = header
@@ -219,8 +219,9 @@ function Library:CreateWindow(config)
     local function headerButton(name, text, x)
         local button = Instance.new("TextButton")
         button.Name = name
-        button.Size = UDim2.fromOffset(38, 38)
-        button.Position = UDim2.new(1, x, 0, 15)
+        local buttonSize = width < 380 and 34 or 38
+        button.Size = UDim2.fromOffset(buttonSize, buttonSize)
+        button.Position = UDim2.new(1, x, 0, width < 380 and 17 or 15)
         button.BackgroundColor3 = Library.Theme.Button
         button.BorderSizePixel = 0
         button.Text = text
@@ -235,8 +236,8 @@ function Library:CreateWindow(config)
         return button
     end
 
-    local minimize = headerButton("Minimize", "−", -88)
-    local close = headerButton("Close", "×", -44)
+    local minimize = headerButton("Minimize", "−", width < 380 and -76 or -88)
+    local close = headerButton("Close", "×", width < 380 and -38 or -44)
 
     local body = Instance.new("Frame")
     body.Position = UDim2.fromOffset(12, 70)
@@ -260,21 +261,19 @@ function Library:CreateWindow(config)
 
     if profileConfig.Enabled ~= false then
         profile = Instance.new("Frame")
-        profile.Position = UDim2.new(0, 8, 1, -74)
-        profile.Size = UDim2.new(1, -16, 0, 66)
-        profile.BackgroundColor3 = Library.Theme.Panel
-        profile.BackgroundTransparency = math.clamp(transparency + .02, 0, .9)
+        profile.Name = "UserProfile"
+        local profileX = math.max(125, math.min(170, math.floor(width * .31)))
+        local profileWidth = math.max(70, math.min(180, width - profileX - 100))
+        profile.Position = UDim2.fromOffset(profileX, 7)
+        profile.Size = UDim2.fromOffset(profileWidth, 46)
+        profile.BackgroundTransparency = 1
         profile.BorderSizePixel = 0
-        profile.Parent = sidebar
-
-        corner(profile, 10)
+        profile.Parent = header
     end
 
     local tabList = Instance.new("ScrollingFrame")
     tabList.Position = UDim2.fromOffset(6, 8)
-    tabList.Size = profile
-        and UDim2.new(1, -12, 1, -88)
-        or UDim2.new(1, -12, 1, -16)
+    tabList.Size = UDim2.new(1, -12, 1, -16)
     tabList.BackgroundTransparency = 1
     tabList.BorderSizePixel = 0
     tabList.ScrollBarThickness = 2
@@ -285,21 +284,21 @@ function Library:CreateWindow(config)
 
     local tabLayout = Instance.new("UIListLayout")
     tabLayout.Padding = UDim.new(0, 6)
+    tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
     tabLayout.Parent = tabList
 
     if profile then
-        local textX = 10
+        local avatarSize = width < 390 and 28 or 36
+        local textX = avatarSize + 8
 
         if profileConfig.ShowAvatar ~= false then
             local avatar = Instance.new("ImageLabel")
-            avatar.Position = UDim2.fromOffset(8, 8)
-            avatar.Size = UDim2.fromOffset(50, 50)
+            avatar.Position = UDim2.fromOffset(0, 5)
+            avatar.Size = UDim2.fromOffset(avatarSize, avatarSize)
             avatar.BackgroundColor3 = Library.Theme.Button
             avatar.BorderSizePixel = 0
             avatar.Parent = profile
-
             corner(avatar, 100)
-            textX = 66
 
             if LocalPlayer then
                 task.spawn(function()
@@ -310,22 +309,23 @@ function Library:CreateWindow(config)
                             Enum.ThumbnailSize.Size100x100
                         )
                     end)
-
                     if ok and avatar.Parent then
                         avatar.Image = image
                     end
                 end)
             end
+        else
+            textX = 0
         end
 
         if profileConfig.ShowDisplayName ~= false then
             label(
                 profile,
                 LocalPlayer and LocalPlayer.DisplayName or "Player",
-                UDim2.fromOffset(textX, 8),
-                UDim2.new(1, -textX - 8, 0, 22),
+                UDim2.fromOffset(textX, 4),
+                UDim2.new(1, -textX, 0, 20),
                 Font.Medium,
-                12,
+                profile.AbsoluteSize.X < 125 and 9 or 11,
                 Library.Theme.Text
             )
         end
@@ -334,10 +334,10 @@ function Library:CreateWindow(config)
             label(
                 profile,
                 LocalPlayer and ("@" .. LocalPlayer.Name) or "@Player",
-                UDim2.fromOffset(textX, 32),
-                UDim2.new(1, -textX - 8, 0, 18),
+                UDim2.fromOffset(textX, 24),
+                UDim2.new(1, -textX, 0, 17),
                 Font.Regular,
-                10,
+                9,
                 Library.Theme.Sub
             )
         end
@@ -657,7 +657,19 @@ function Library:CreateWindow(config)
 
         local layout = Instance.new("UIListLayout")
         layout.Padding = UDim.new(0, 9)
+        layout.SortOrder = Enum.SortOrder.LayoutOrder
         layout.Parent = page
+
+        local order = 0
+        local function nextOrder()
+            order += 1
+            return order
+        end
+
+        local function addItem(object)
+            object.LayoutOrder = nextOrder()
+            return object
+        end
 
         local tab = {
             Window = window,
@@ -690,6 +702,7 @@ function Library:CreateWindow(config)
             frame.BorderSizePixel = 0
             frame.Text = ""
             frame.AutoButtonColor = false
+            addItem(frame)
             frame.Parent = page
 
             corner(frame, 10)
@@ -742,6 +755,7 @@ function Library:CreateWindow(config)
             options = safe(options)
 
             local frame = makeBase(page, options.Height or 56)
+            addItem(frame)
 
             local button = Instance.new("TextButton")
             button.Size = UDim2.fromScale(1, 1)
@@ -841,6 +855,7 @@ function Library:CreateWindow(config)
             options = safe(options)
 
             local frame = makeBase(page, 56)
+            addItem(frame)
             frame.ClipsDescendants = true
 
             local headerButton = Instance.new("TextButton")
@@ -867,25 +882,13 @@ function Library:CreateWindow(config)
                 headerButton,
                 tostring(selected or "None"),
                 UDim2.new(.5, 0, 0, 8),
-                UDim2.new(.42, -10, 0, 20),
+                UDim2.new(.5, -22, 0, 20),
                 Font.Regular,
                 10,
                 Library.Theme.Sub
             )
 
             selectedLabel.TextXAlignment = Enum.TextXAlignment.Right
-
-            local arrow = label(
-                headerButton,
-                "⌄",
-                UDim2.new(1, -32, 0, 8),
-                UDim2.fromOffset(22, 20),
-                Font.Title,
-                13,
-                Library.Theme.Sub
-            )
-
-            arrow.TextXAlignment = Enum.TextXAlignment.Center
 
             local optionContainer = Instance.new("Frame")
             optionContainer.Position = UDim2.fromOffset(9, 61)
@@ -909,7 +912,6 @@ function Library:CreateWindow(config)
                 end
 
                 frame.Size = UDim2.new(1, 0, 0, 56)
-                arrow.Text = " "
             end
 
             local function openDropdown()
@@ -959,7 +961,6 @@ function Library:CreateWindow(config)
                     math.min(56 + #optionsList * 36, 240)
                 )
 
-                arrow.Text = " "
             end
 
             connect(headerButton.MouseButton1Click, function()
@@ -992,6 +993,17 @@ function Library:CreateWindow(config)
 
                 SetOptions = function(_, newOptions)
                     optionsList = type(newOptions) == "table" and newOptions or {}
+                    local found = false
+                    for _, option in ipairs(optionsList) do
+                        if option == selected then
+                            found = true
+                            break
+                        end
+                    end
+                    if not found then
+                        selected = optionsList[1]
+                        selectedLabel.Text = tostring(selected or "None")
+                    end
                     closeDropdown()
                 end
             }
@@ -1001,6 +1013,7 @@ function Library:CreateWindow(config)
             options = safe(options)
 
             local frame = makeBase(page, 72)
+            addItem(frame)
 
             label(
                 frame,
@@ -1061,7 +1074,11 @@ function Library:CreateWindow(config)
                 min, max = max, min
             end
 
-            local step = tonumber(options.Step) or 1
+            local step = math.abs(tonumber(options.Step) or 1)
+            if step <= 0 then
+                step = 1
+            end
+
             local value = math.clamp(
                 tonumber(options.Default) or min,
                 min,
@@ -1069,6 +1086,7 @@ function Library:CreateWindow(config)
             )
 
             local frame = makeBase(page, 72)
+            addItem(frame)
 
             label(
                 frame,
@@ -1212,6 +1230,7 @@ function Library:CreateWindow(config)
                 12,
                 Library.Theme.Sub
             )
+            addItem(sectionLabel)
 
             return {
                 Label = sectionLabel
@@ -1230,6 +1249,7 @@ function Library:CreateWindow(config)
             )
 
             textLabel.TextWrapped = true
+            addItem(textLabel)
 
             return {
                 Label = textLabel
@@ -1240,6 +1260,7 @@ function Library:CreateWindow(config)
             options = safe(options)
 
             local frame = makeBase(page, options.Height or 82)
+            addItem(frame)
 
             local titleLabel = label(
                 frame,
@@ -1277,6 +1298,7 @@ function Library:CreateWindow(config)
             divider.BackgroundColor3 = Library.Theme.Stroke
             divider.BackgroundTransparency = .45
             divider.BorderSizePixel = 0
+            addItem(divider)
             divider.Parent = page
 
             return divider
@@ -1291,6 +1313,7 @@ function Library:CreateWindow(config)
             frame.BorderSizePixel = 0
             frame.Text = ""
             frame.AutoButtonColor = false
+            addItem(frame)
             frame.Parent = page
 
             corner(frame, 10)
