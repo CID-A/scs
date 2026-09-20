@@ -1,6 +1,6 @@
 local Library = {
     Name = "CID UI",
-    Version = "1.0.0"
+    Version = "0.0.5"
 }
 
 local Players = game:GetService("Players")
@@ -271,6 +271,14 @@ function Library:CreateWindow(config)
         profile.Parent = header
     end
 
+    local headerLine = Instance.new("Frame")
+    headerLine.Size = UDim2.new(1, -24, 0, 1)
+    headerLine.Position = UDim2.new(0, 12, 1, -1)
+    headerLine.BackgroundColor3 = Library.Theme.Stroke
+    headerLine.BackgroundTransparency = .55
+    headerLine.BorderSizePixel = 0
+    headerLine.Parent = header
+
     local tabList = Instance.new("ScrollingFrame")
     tabList.Position = UDim2.fromOffset(6, 8)
     tabList.Size = UDim2.new(1, -12, 1, -16)
@@ -408,6 +416,7 @@ function Library:CreateWindow(config)
             Title = title,
             Subtitle = subtitle,
             Version = version,
+            HeaderLine = headerLine,
             Minimize = minimize,
             Close = close,
             Sidebar = sidebar,
@@ -509,6 +518,10 @@ function Library:CreateWindow(config)
                 selected and Library.Theme.Accent or Library.Theme.Button
             item.Button.TextColor3 =
                 selected and Color3.fromRGB(20, 20, 23) or Library.Theme.Sub
+
+            if item.Stroke then
+                item.Stroke.Transparency = selected and .05 or .45
+            end
         end
 
         window.SelectedTab = tab
@@ -632,6 +645,7 @@ function Library:CreateWindow(config)
         button.Parent = tabList
 
         corner(button, 9)
+        local tabStroke = stroke(button, Library.Theme.Stroke, .45)
 
         local padding = Instance.new("UIPadding")
         padding.PaddingLeft = UDim.new(0, 12)
@@ -675,6 +689,7 @@ function Library:CreateWindow(config)
             Window = window,
             Name = tostring(tabConfig.Name or "Tab"),
             Button = button,
+            Stroke = tabStroke,
             Page = page,
             Layout = layout
         }
@@ -890,38 +905,69 @@ function Library:CreateWindow(config)
 
             selectedLabel.TextXAlignment = Enum.TextXAlignment.Right
 
-            local optionContainer = Instance.new("Frame")
-            optionContainer.Position = UDim2.fromOffset(9, 61)
-            optionContainer.Size = UDim2.new(1, -18, 0, 0)
-            optionContainer.BackgroundTransparency = 1
-            optionContainer.Parent = frame
+            local optionScroller = Instance.new("ScrollingFrame")
+            optionScroller.Name = "OptionScroller"
+            optionScroller.Position = UDim2.fromOffset(9, 61)
+            optionScroller.Size = UDim2.new(1, -18, 0, 0)
+            optionScroller.BackgroundColor3 = Library.Theme.Content
+            optionScroller.BackgroundTransparency = .15
+            optionScroller.BorderSizePixel = 0
+            optionScroller.ScrollBarThickness = 3
+            optionScroller.ScrollBarImageColor3 = Library.Theme.Stroke
+            optionScroller.ScrollingDirection = Enum.ScrollingDirection.Y
+            optionScroller.ScrollingEnabled = true
+            optionScroller.Active = true
+            optionScroller.AutomaticCanvasSize = Enum.AutomaticSize.Y
+            optionScroller.CanvasSize = UDim2.new()
+            optionScroller.ClipsDescendants = true
+            optionScroller.Parent = frame
+            corner(optionScroller, 9)
+
+            local optionPadding = Instance.new("UIPadding")
+            optionPadding.PaddingLeft = UDim.new(0, 5)
+            optionPadding.PaddingRight = UDim.new(0, 5)
+            optionPadding.PaddingTop = UDim.new(0, 5)
+            optionPadding.PaddingBottom = UDim.new(0, 5)
+            optionPadding.Parent = optionScroller
 
             local optionLayout = Instance.new("UIListLayout")
             optionLayout.Padding = UDim.new(0, 4)
-            optionLayout.Parent = optionContainer
+            optionLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            optionLayout.Parent = optionScroller
 
             local opened = false
+            local maxVisibleHeight = 184
+            local previousPageScrolling = true
+
+            local function getDropdownHeight()
+                return math.min(#optionsList * 36 + 10, maxVisibleHeight)
+            end
+
+            local function clearOptions()
+                for _, child in ipairs(optionScroller:GetChildren()) do
+                    if child:IsA("TextButton") then
+                        child:Destroy()
+                    end
+                end
+            end
 
             local function closeDropdown()
                 opened = false
-
-                for _, child in ipairs(optionContainer:GetChildren()) do
-                    if child:IsA("TextButton") then
-                        child:Destroy()
-                    end
-                end
-
+                page.ScrollingEnabled = previousPageScrolling
+                clearOptions()
+                optionScroller.CanvasPosition = Vector2.new(0, 0)
+                optionScroller.Size = UDim2.new(1, -18, 0, 0)
                 frame.Size = UDim2.new(1, 0, 0, 56)
+                updateScrolling(page, layout)
             end
 
             local function openDropdown()
+                if #optionsList == 0 then return end
                 opened = true
-
-                for _, child in ipairs(optionContainer:GetChildren()) do
-                    if child:IsA("TextButton") then
-                        child:Destroy()
-                    end
-                end
+                previousPageScrolling = page.ScrollingEnabled
+                page.ScrollingEnabled = false
+                clearOptions()
+                optionScroller.CanvasPosition = Vector2.new(0, 0)
 
                 for index, option in ipairs(optionsList) do
                     local optionButton = Instance.new("TextButton")
@@ -934,18 +980,15 @@ function Library:CreateWindow(config)
                     optionButton.TextColor3 = Library.Theme.Text
                     optionButton.LayoutOrder = index
                     optionButton.AutoButtonColor = false
-                    optionButton.Parent = optionContainer
-
+                    optionButton.Parent = optionScroller
                     corner(optionButton, 8)
 
                     connect(optionButton.MouseEnter, function()
                         optionButton.BackgroundColor3 = Library.Theme.Hover
                     end)
-
                     connect(optionButton.MouseLeave, function()
                         optionButton.BackgroundColor3 = Library.Theme.Button
                     end)
-
                     connect(optionButton.MouseButton1Click, function()
                         selected = option
                         selectedLabel.Text = tostring(option)
@@ -954,13 +997,10 @@ function Library:CreateWindow(config)
                     end)
                 end
 
-                frame.Size = UDim2.new(
-                    1,
-                    0,
-                    0,
-                    math.min(56 + #optionsList * 36, 240)
-                )
-
+                local visibleHeight = getDropdownHeight()
+                optionScroller.Size = UDim2.new(1, -18, 0, visibleHeight)
+                frame.Size = UDim2.new(1, 0, 0, 61 + visibleHeight)
+                updateScrolling(page, layout)
             end
 
             connect(headerButton.MouseButton1Click, function()
@@ -1499,6 +1539,16 @@ function Library:CreateWindow(config)
         return not self.Destroyed and self.IsWindowMinimized
     end
 
+    function window:IsDestroyed()
+        return self.Destroyed == true
+    end
+
+    function window:Refresh()
+        if self.Destroyed then return end
+        updateScrolling(tabList, tabLayout)
+        updateAllPages()
+    end
+
     function window:SetScale(value)
         scale.Scale = math.clamp(tonumber(value) or 1, .5, 1.5)
     end
@@ -1582,7 +1632,7 @@ function Library:CreateWindow(config)
             return nil
         end
 
-        return version.Text
+        return tostring(version.Text):gsub("^v", "")
     end
 
     function window:SetToggleKey(value)
