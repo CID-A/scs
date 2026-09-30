@@ -1,6 +1,6 @@
 local Library = {
     Name = "CID UI",
-    Version = "0.0.5"
+    Version = "0.0.6"
 }
 
 local Players = game:GetService("Players")
@@ -9,7 +9,7 @@ local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 
-Library.Theme = {
+local DefaultTheme = {
     Bg = Color3.fromRGB(18,18,22),
     Panel = Color3.fromRGB(25,25,30),
     Content = Color3.fromRGB(13,13,16),
@@ -20,9 +20,208 @@ Library.Theme = {
     Text = Color3.fromRGB(242,242,246),
     Sub = Color3.fromRGB(150,150,160),
     Accent = Color3.fromRGB(225,225,232),
+    AccentText = Color3.fromRGB(20,20,23),
     ToggleOff = Color3.fromRGB(72,72,82),
-    ToggleKnob = Color3.fromRGB(170,170,180)
+    ToggleKnob = Color3.fromRGB(170,170,180),
+    Transparency = 0,
+    PanelTransparency = 0,
+    ContentTransparency = 0,
+    ButtonTransparency = 0,
+    InputTransparency = 0,
+    OpenButtonTransparency = .05,
+    NotificationTransparency = 0
 }
+
+local Themes = {
+    Dark = DefaultTheme,
+    Glass = {
+        Bg = Color3.fromRGB(22, 27, 36),
+        Panel = Color3.fromRGB(30, 37, 49),
+        Content = Color3.fromRGB(17, 22, 30),
+        Button = Color3.fromRGB(45, 54, 70),
+        Hover = Color3.fromRGB(60, 72, 92),
+        Input = Color3.fromRGB(34, 42, 56),
+        Stroke = Color3.fromRGB(135, 160, 190),
+        Text = Color3.fromRGB(245, 248, 255),
+        Sub = Color3.fromRGB(175, 188, 207),
+        Accent = Color3.fromRGB(105, 180, 255),
+        AccentText = Color3.fromRGB(10, 18, 28),
+        ToggleOff = Color3.fromRGB(76, 88, 108),
+        ToggleKnob = Color3.fromRGB(210, 220, 235),
+        Transparency = .24,
+        PanelTransparency = .12,
+        ContentTransparency = .22,
+        ButtonTransparency = .10,
+        InputTransparency = .10,
+        OpenButtonTransparency = .12,
+        NotificationTransparency = .12
+    },
+    Midnight = {
+        Bg = Color3.fromRGB(10, 12, 20),
+        Panel = Color3.fromRGB(17, 20, 32),
+        Content = Color3.fromRGB(8, 10, 17),
+        Button = Color3.fromRGB(25, 29, 45),
+        Hover = Color3.fromRGB(38, 45, 68),
+        Input = Color3.fromRGB(21, 25, 39),
+        Stroke = Color3.fromRGB(58, 69, 100),
+        Text = Color3.fromRGB(240, 243, 255),
+        Sub = Color3.fromRGB(145, 154, 180),
+        Accent = Color3.fromRGB(120, 130, 255),
+        AccentText = Color3.fromRGB(15, 17, 28),
+        ToggleOff = Color3.fromRGB(55, 63, 85),
+        ToggleKnob = Color3.fromRGB(175, 182, 205),
+        Transparency = .03,
+        PanelTransparency = .02,
+        ContentTransparency = .04,
+        ButtonTransparency = .01,
+        InputTransparency = .01,
+        OpenButtonTransparency = .04,
+        NotificationTransparency = .02
+    },
+    Rose = {
+        Bg = Color3.fromRGB(24, 17, 21),
+        Panel = Color3.fromRGB(34, 24, 30),
+        Content = Color3.fromRGB(18, 13, 17),
+        Button = Color3.fromRGB(48, 31, 41),
+        Hover = Color3.fromRGB(65, 40, 54),
+        Input = Color3.fromRGB(39, 27, 34),
+        Stroke = Color3.fromRGB(105, 66, 83),
+        Text = Color3.fromRGB(250, 243, 247),
+        Sub = Color3.fromRGB(185, 157, 171),
+        Accent = Color3.fromRGB(255, 125, 175),
+        AccentText = Color3.fromRGB(35, 12, 24),
+        ToggleOff = Color3.fromRGB(88, 59, 73),
+        ToggleKnob = Color3.fromRGB(220, 190, 204),
+        Transparency = .02,
+        PanelTransparency = .01,
+        ContentTransparency = .02,
+        ButtonTransparency = 0,
+        InputTransparency = 0,
+        OpenButtonTransparency = .04,
+        NotificationTransparency = .01
+    }
+}
+
+Library.Themes = Themes
+Library.Theme = table.clone(DefaultTheme)
+Library.ActiveTheme = "Dark"
+Library._Windows = {}
+
+local function copyTheme(source)
+    local result = {}
+    for key, value in pairs(source or {}) do
+        result[key] = value
+    end
+    return result
+end
+
+local function mergeTheme(base, custom)
+    local result = copyTheme(base)
+    for key, value in pairs(custom or {}) do
+        if result[key] ~= nil or key == "Name" then
+            result[key] = value
+        end
+    end
+    return result
+end
+
+local function themeRole(object, role)
+    if object and object:IsA("Instance") then
+        object:SetAttribute("CIDThemeRole", role)
+    end
+    return object
+end
+
+local function applyThemeRole(object, role, theme)
+    if not object or not object.Parent then
+        return
+    end
+
+    if role == "Stroke" and object:IsA("UIStroke") then
+        object.Color = theme.Stroke
+        return
+    end
+
+    if object:IsA("TextLabel") or object:IsA("TextButton") or object:IsA("TextBox") then
+        if role == "Text" then
+            object.TextColor3 = theme.Text
+        elseif role == "Sub" then
+            object.TextColor3 = theme.Sub
+        elseif role == "AccentText" then
+            object.TextColor3 = theme.AccentText
+        elseif object:GetAttribute("CIDTextRole") == "Text" then
+            object.TextColor3 = theme.Text
+        elseif role == "Button" and object:IsA("TextButton") then
+            object.TextColor3 = theme.Sub
+        elseif role == "Accent" and object:IsA("TextButton") then
+            object.TextColor3 = theme.AccentText
+        elseif role == "OpenButton" and object:IsA("TextButton") then
+            object.TextColor3 = theme.Text
+        end
+    end
+
+    if role == "ImageButton" and object:IsA("ImageButton") then
+        object.BackgroundColor3 = theme.Button
+    elseif object:IsA("GuiObject") then
+        local color = theme[role]
+
+        if role == "OpenButton" then
+            color = theme.Bg
+        elseif role == "Notification" then
+            color = theme.Panel
+        end
+
+        if typeof(color) == "Color3" then
+            object.BackgroundColor3 = color
+        end
+    end
+end
+
+local function applyThemeTransparency(object, role, theme)
+    if not object or not object.Parent or not object:IsA("GuiObject") then
+        return
+    end
+
+    local value
+    if role == "Bg" then
+        value = theme.Transparency
+    elseif role == "Panel" then
+        value = theme.PanelTransparency
+    elseif role == "Content" then
+        value = theme.ContentTransparency
+    elseif role == "Button" then
+        value = theme.ButtonTransparency
+    elseif role == "Input" then
+        value = theme.InputTransparency
+    elseif role == "OpenButton" then
+        value = theme.OpenButtonTransparency
+    elseif role == "Notification" then
+        value = theme.NotificationTransparency
+    end
+
+    if value ~= nil then
+        object.BackgroundTransparency = value
+    end
+end
+
+local function applyThemeToRoot(root, theme)
+    if not root then
+        return
+    end
+
+    local objects = {root}
+    for _, descendant in ipairs(root:GetDescendants()) do
+        table.insert(objects, descendant)
+    end
+
+    for _, object in ipairs(objects) do
+        local role = object:GetAttribute("CIDThemeRole")
+        if role then
+            applyThemeRole(object, role, theme)
+            applyThemeTransparency(object, role, theme)
+        end
+    end
+end
 
 local Font = {
     Title = Enum.Font.GothamBold,
@@ -47,6 +246,7 @@ local function stroke(object, color, transparency)
     s.Color = color
     s.Transparency = transparency or 0
     s.Parent = object
+    themeRole(s, "Stroke")
     return s
 end
 
@@ -63,6 +263,17 @@ local function label(parent, text, position, size, font, textSize, textColor)
     l.TextYAlignment = Enum.TextYAlignment.Center
     l.TextTruncate = Enum.TextTruncate.AtEnd
     l.Parent = parent
+
+    if textColor == Library.Theme.Text then
+        themeRole(l, "Text")
+    elseif textColor == Library.Theme.Sub then
+        themeRole(l, "Sub")
+    elseif textColor == Library.Theme.Accent then
+        themeRole(l, "Accent")
+    else
+        themeRole(l, "Text")
+    end
+
     return l
 end
 
@@ -129,6 +340,7 @@ local function makeBase(parent, height)
     frame.BackgroundColor3 = Library.Theme.Panel
     frame.BorderSizePixel = 0
     frame.Parent = parent
+    themeRole(frame, "Panel")
 
     corner(frame, 10)
     stroke(frame, Library.Theme.Stroke, .35)
@@ -163,6 +375,7 @@ function Library:CreateWindow(config)
     main.BackgroundTransparency = transparency
     main.BorderSizePixel = 0
     main.Parent = gui
+    themeRole(main, "Bg")
 
     corner(main, 16)
     stroke(main, Library.Theme.Stroke, .15)
@@ -230,6 +443,7 @@ function Library:CreateWindow(config)
         button.TextColor3 = Library.Theme.Sub
         button.AutoButtonColor = false
         button.Parent = header
+        themeRole(button, "Button")
 
         corner(button, 10)
 
@@ -253,6 +467,7 @@ function Library:CreateWindow(config)
     sidebar.BackgroundTransparency = math.clamp(transparency + .02, 0, .9)
     sidebar.BorderSizePixel = 0
     sidebar.Parent = body
+    themeRole(sidebar, "Content")
 
     corner(sidebar, 11)
 
@@ -278,6 +493,7 @@ function Library:CreateWindow(config)
     headerLine.BackgroundTransparency = .55
     headerLine.BorderSizePixel = 0
     headerLine.Parent = header
+    themeRole(headerLine, "Stroke")
 
     local tabList = Instance.new("ScrollingFrame")
     tabList.Position = UDim2.fromOffset(6, 8)
@@ -306,6 +522,7 @@ function Library:CreateWindow(config)
             avatar.BackgroundColor3 = Library.Theme.Button
             avatar.BorderSizePixel = 0
             avatar.Parent = profile
+            themeRole(avatar, "Button")
             corner(avatar, 100)
 
             if LocalPlayer then
@@ -359,6 +576,7 @@ function Library:CreateWindow(config)
     pages.BorderSizePixel = 0
     pages.ClipsDescendants = true
     pages.Parent = body
+    themeRole(pages, "Content")
 
     corner(pages, 11)
 
@@ -385,6 +603,8 @@ function Library:CreateWindow(config)
         openButton.AutoButtonColor = false
         openButton.Visible = false
         openButton.Parent = gui
+        themeRole(openButton, "OpenButton")
+        openButton:SetAttribute("CIDTextRole", "Text")
 
         corner(openButton, 100)
         stroke(openButton, Library.Theme.Stroke, .1)
@@ -514,10 +734,11 @@ function Library:CreateWindow(config)
             local selected = item == tab
 
             item.Page.Visible = selected
+            themeRole(item.Button, selected and "Accent" or "Button")
             item.Button.BackgroundColor3 =
                 selected and Library.Theme.Accent or Library.Theme.Button
             item.Button.TextColor3 =
-                selected and Color3.fromRGB(20, 20, 23) or Library.Theme.Sub
+                selected and Library.Theme.AccentText or Library.Theme.Sub
 
             if item.Stroke then
                 item.Stroke.Transparency = selected and .05 or .45
@@ -643,6 +864,7 @@ function Library:CreateWindow(config)
         button.TextXAlignment = Enum.TextXAlignment.Left
         button.AutoButtonColor = false
         button.Parent = tabList
+        themeRole(button, "Button")
 
         corner(button, 9)
         local tabStroke = stroke(button, Library.Theme.Stroke, .45)
@@ -719,6 +941,7 @@ function Library:CreateWindow(config)
             frame.AutoButtonColor = false
             addItem(frame)
             frame.Parent = page
+            themeRole(frame, "Panel")
 
             corner(frame, 10)
             stroke(frame, Library.Theme.Stroke, .35)
@@ -806,6 +1029,7 @@ function Library:CreateWindow(config)
             switch.Position = UDim2.new(1, -58, .5, -12)
             switch.BackgroundColor3 = Library.Theme.ToggleOff
             switch.Parent = button
+            themeRole(switch, "ToggleOff")
 
             corner(switch, 100)
 
@@ -814,12 +1038,14 @@ function Library:CreateWindow(config)
             knob.Position = UDim2.fromOffset(3, 3)
             knob.BackgroundColor3 = Library.Theme.ToggleKnob
             knob.Parent = switch
+            themeRole(knob, "ToggleKnob")
 
             corner(knob, 100)
 
             local value = options.Default == true
 
             local function render()
+                themeRole(switch, value and "Accent" or "ToggleOff")
                 tween(
                     switch,
                     .15,
@@ -829,6 +1055,7 @@ function Library:CreateWindow(config)
                     }
                 ):Play()
 
+                themeRole(knob, value and "Bg" or "ToggleKnob")
                 tween(
                     knob,
                     .15,
@@ -921,6 +1148,7 @@ function Library:CreateWindow(config)
             optionScroller.CanvasSize = UDim2.new()
             optionScroller.ClipsDescendants = true
             optionScroller.Parent = frame
+            themeRole(optionScroller, "Content")
             corner(optionScroller, 9)
 
             local optionPadding = Instance.new("UIPadding")
@@ -981,6 +1209,8 @@ function Library:CreateWindow(config)
                     optionButton.LayoutOrder = index
                     optionButton.AutoButtonColor = false
                     optionButton.Parent = optionScroller
+                    themeRole(optionButton, "Button")
+                    optionButton:SetAttribute("CIDTextRole", "Text")
                     corner(optionButton, 8)
 
                     connect(optionButton.MouseEnter, function()
@@ -1079,6 +1309,7 @@ function Library:CreateWindow(config)
             box.TextSize = 10
             box.TextXAlignment = Enum.TextXAlignment.Left
             box.Parent = frame
+            themeRole(box, "Input")
 
             corner(box, 8)
 
@@ -1155,6 +1386,7 @@ function Library:CreateWindow(config)
             track.Size = UDim2.new(1, -28, 0, 7)
             track.BackgroundColor3 = Library.Theme.ToggleOff
             track.Parent = frame
+            themeRole(track, "ToggleOff")
 
             corner(track, 100)
 
@@ -1162,6 +1394,7 @@ function Library:CreateWindow(config)
             fill.Size = UDim2.fromScale(0, 1)
             fill.BackgroundColor3 = Library.Theme.Accent
             fill.Parent = track
+            themeRole(fill, "Accent")
 
             corner(fill, 100)
 
@@ -1171,6 +1404,7 @@ function Library:CreateWindow(config)
             knob.Position = UDim2.new(0, 0, .5, 0)
             knob.BackgroundColor3 = Library.Theme.Accent
             knob.Parent = track
+            themeRole(knob, "Accent")
 
             corner(knob, 100)
 
@@ -1340,6 +1574,7 @@ function Library:CreateWindow(config)
             divider.BorderSizePixel = 0
             addItem(divider)
             divider.Parent = page
+            themeRole(divider, "Stroke")
 
             return divider
         end
@@ -1450,6 +1685,7 @@ function Library:CreateWindow(config)
         notification.BackgroundTransparency = 1
         notification.BorderSizePixel = 0
         notification.Parent = notifications
+        themeRole(notification, "Notification")
 
         corner(notification, 12)
 
@@ -1482,8 +1718,14 @@ function Library:CreateWindow(config)
         content.TextWrapped = true
         content.TextYAlignment = Enum.TextYAlignment.Top
 
+        local notificationTransparency = math.clamp(
+            tonumber(Library.Theme.NotificationTransparency) or transparency,
+            0,
+            .9
+        )
+
         tween(notification, .2, {
-            BackgroundTransparency = transparency
+            BackgroundTransparency = notificationTransparency
         }):Play()
 
         task.delay(tonumber(options.Duration) or 3, function()
@@ -1699,6 +1941,23 @@ function Library:CreateWindow(config)
         return profile and profile.Visible or false
     end
 
+    function window:_ApplyTheme(theme)
+        transparency = math.clamp(tonumber(theme.Transparency) or transparency, 0, .85)
+        applyThemeToRoot(gui, theme)
+
+        if openButton then
+            openButton.BackgroundTransparency = math.clamp(
+                tonumber(theme.OpenButtonTransparency) or openButton.BackgroundTransparency,
+                0,
+                .9
+            )
+        end
+
+        if window.SelectedTab then
+            selectTab(window.SelectedTab)
+        end
+    end
+
     function window:Destroy()
         if self.Destroyed then
             return
@@ -1723,7 +1982,86 @@ function Library:CreateWindow(config)
         updateScrolling(tabList, tabLayout)
     end)
 
+    table.insert(Library._Windows, window)
+
     return window
+end
+
+function Library:SetTheme(name)
+    local themeName = tostring(name or "")
+    local source = Library.Themes[themeName]
+
+    if not source then
+        return false
+    end
+
+    Library.Theme = copyTheme(source)
+    Library.ActiveTheme = themeName
+
+    for index = #Library._Windows, 1, -1 do
+        local window = Library._Windows[index]
+
+        if not window or window.Destroyed then
+            table.remove(Library._Windows, index)
+        elseif window._ApplyTheme then
+            window:_ApplyTheme(Library.Theme)
+        end
+    end
+
+    return true
+end
+
+function Library:GetTheme()
+    return Library.ActiveTheme
+end
+
+function Library:AddTheme(theme)
+    if type(theme) ~= "table" then
+        return false
+    end
+
+    local name = tostring(theme.Name or "")
+    if name == "" then
+        return false
+    end
+
+    local custom = {}
+    for key, value in pairs(theme) do
+        if key ~= "Name" then
+            custom[key] = value
+        end
+    end
+
+    Library.Themes[name] = mergeTheme(DefaultTheme, custom)
+    return true
+end
+
+function Library:RemoveTheme(name)
+    name = tostring(name or "")
+
+    if name == "Dark" or name == "Glass" or name == "Midnight" or name == "Rose" then
+        return false
+    end
+
+    if Library.Themes[name] then
+        Library.Themes[name] = nil
+        return true
+    end
+
+    return false
+end
+
+function Library:ResetTheme()
+    return self:SetTheme("Dark")
+end
+
+function Library:GetThemes()
+    local result = {}
+    for name in pairs(Library.Themes) do
+        table.insert(result, name)
+    end
+    table.sort(result)
+    return result
 end
 
 function Library:GetName()
