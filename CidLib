@@ -1,6 +1,6 @@
 local Library = {
     Name = "CID UI",
-    Version = "0.0.6"
+    Version = "0.0.2"
 }
 
 local Players = game:GetService("Players")
@@ -29,7 +29,8 @@ local DefaultTheme = {
     ButtonTransparency = 0,
     InputTransparency = 0,
     OpenButtonTransparency = .05,
-    NotificationTransparency = 0
+    NotificationTransparency = 0,
+    ProfileTransparency = 1
 }
 
 local Themes = {
@@ -481,6 +482,7 @@ function Library:CreateWindow(config)
     if profileConfig.Enabled ~= false then
         profile = Instance.new("Frame")
         profile.Name = "UserProfile"
+        profile.BackgroundColor3 = Library.Theme.Bg
         local profileX = math.max(125, math.min(170, math.floor(width * .31)))
         local profileWidth = math.max(70, math.min(180, width - profileX - 100))
         profile.Position = UDim2.fromOffset(profileX, 7)
@@ -566,7 +568,7 @@ function Library:CreateWindow(config)
                 UDim2.fromOffset(textX, 24),
                 UDim2.new(1, -textX, 0, 17),
                 Font.Regular,
-                9,
+                11,
                 Library.Theme.Sub
             )
         end
@@ -971,7 +973,7 @@ function Library:CreateWindow(config)
                     UDim2.fromOffset(14, 29),
                     UDim2.new(1, -28, 0, 17),
                     Font.Regular,
-                    9,
+                    11,
                     Library.Theme.Sub
                 )
             end
@@ -1027,7 +1029,7 @@ function Library:CreateWindow(config)
                     UDim2.fromOffset(14, 29),
                     UDim2.new(1, -90, 0, 17),
                     Font.Regular,
-                    9,
+                    11,
                     Library.Theme.Sub
                 )
             end
@@ -1134,7 +1136,7 @@ function Library:CreateWindow(config)
                 UDim2.new(.5, 0, 0, 8),
                 UDim2.new(.5, -22, 0, 20),
                 Font.Regular,
-                10,
+                11,
                 Library.Theme.Sub
             )
 
@@ -1530,7 +1532,7 @@ function Library:CreateWindow(config)
                 UDim2.fromOffset(3, 0),
                 UDim2.new(1, -6, 0, 30),
                 Font.Regular,
-                10,
+                11,
                 Library.Theme.Sub
             )
 
@@ -1568,7 +1570,7 @@ function Library:CreateWindow(config)
                 UDim2.fromOffset(14, 32),
                 UDim2.new(1, -28, 1, -40),
                 Font.Regular,
-                9,
+                11,
                 Library.Theme.Sub
             )
 
@@ -1689,10 +1691,121 @@ function Library:CreateWindow(config)
             }
         end
 
+        --==================================================
+        -- Simplified API aliases
+        --==================================================
+
+        function tab:Button(name, callback)
+            if type(name) == "table" then
+                return self:CreateButton(name)
+            end
+
+            return self:CreateButton({
+                Title = tostring(name or "Button"),
+                Callback = callback
+            })
+        end
+
+        function tab:Toggle(name, default, callback)
+            if type(name) == "table" then
+                return self:CreateToggle(name)
+            end
+
+            return self:CreateToggle({
+                Title = tostring(name or "Toggle"),
+                Default = default == true,
+                Callback = callback
+            })
+        end
+
+        function tab:Dropdown(name, options, callback)
+            if type(name) == "table" then
+                return self:CreateDropdown(name)
+            end
+
+            return self:CreateDropdown({
+                Title = tostring(name or "Dropdown"),
+                Options = options or {},
+                Callback = callback
+            })
+        end
+
+        function tab:Input(name, callback, placeholder)
+            if type(name) == "table" then
+                return self:CreateInput(name)
+            end
+
+            return self:CreateInput({
+                Title = tostring(name or "Input"),
+                Placeholder = placeholder or "Escribe algo...",
+                Callback = callback
+            })
+        end
+
+        function tab:Slider(name, min, max, default, callback)
+            if type(name) == "table" then
+                return self:CreateSlider(name)
+            end
+
+            return self:CreateSlider({
+                Title = tostring(name or "Slider"),
+                Min = min,
+                Max = max,
+                Default = default,
+                Callback = callback
+            })
+        end
+
+        function tab:Section(name)
+            return self:CreateSection(name)
+        end
+
+        function tab:Label(text)
+            return self:CreateLabel(text)
+        end
+
+        function tab:Paragraph(options)
+            return self:CreateParagraph(options)
+        end
+
+        function tab:Divider()
+            return self:CreateDivider()
+        end
+
+        function tab:Keybind(name, keyCode, callback, onChanged)
+            if type(name) == "table" then
+                return self:CreateKeybind(name)
+            end
+
+            return self:CreateKeybind({
+                Title = tostring(name or "Keybind"),
+                KeyCode = keyCode or Enum.KeyCode.F,
+                Callback = callback,
+                OnChanged = onChanged
+            })
+        end
+
         return tab
     end
 
-    function window:Notify(options)
+    -- Short aliases for the window API.
+    function window:Tab(options)
+        return self:CreateTab(options)
+    end
+
+    function window:Settings(options)
+        return self:CreateSettingsTab(options)
+    end
+
+    function window:Notify(options, content, duration)
+        if type(options) == "string" then
+            options = {
+                Title = options,
+                Content = content,
+                Duration = duration
+            }
+        end
+
         options = safe(options)
 
         local notification = Instance.new("Frame")
@@ -1823,8 +1936,13 @@ function Library:CreateWindow(config)
         pages.BackgroundTransparency = math.clamp(transparency + .02, 0, .9)
 
         if profile then
-            profile.BackgroundTransparency =
-                math.clamp(transparency + .02, 0, .9)
+            -- User info is intentionally transparent so the avatar/name never
+            -- creates a bright rectangle over Glass or other themes.
+            profile.BackgroundTransparency = math.clamp(
+                tonumber(Library.Theme.ProfileTransparency) or 1,
+                0,
+                1
+            )
         end
 
         for _, descendant in ipairs(main:GetDescendants()) do
@@ -2009,6 +2127,15 @@ function Library:CreateWindow(config)
     function window:_ApplyTheme(theme)
         transparency = math.clamp(tonumber(theme.Transparency) or transparency, 0, .85)
         applyThemeToRoot(gui, theme)
+
+        if profile then
+            profile.BackgroundColor3 = theme.Bg
+            profile.BackgroundTransparency = math.clamp(
+                tonumber(theme.ProfileTransparency) or 1,
+                0,
+                1
+            )
+        end
 
         if openButton then
             openButton.BackgroundTransparency = math.clamp(
