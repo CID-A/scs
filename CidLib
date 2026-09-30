@@ -568,7 +568,7 @@ function Library:CreateWindow(config)
                 UDim2.fromOffset(textX, 24),
                 UDim2.new(1, -textX, 0, 17),
                 Font.Regular,
-                11,
+                12,
                 Library.Theme.Sub
             )
         end
@@ -740,10 +740,10 @@ function Library:CreateWindow(config)
             local selected = item == tab
 
             item.Page.Visible = selected
-            themeRole(item.Button, selected and "Accent" or "Button")
-            item.Button.BackgroundColor3 =
+            themeRole(item._Button, selected and "Accent" or "Button")
+            item._Button.BackgroundColor3 =
                 selected and Library.Theme.Accent or Library.Theme.Button
-            item.Button.TextColor3 =
+            item._Button.TextColor3 =
                 selected and Library.Theme.AccentText or Library.Theme.Sub
 
             if item.Stroke then
@@ -920,7 +920,7 @@ function Library:CreateWindow(config)
         local tab = {
             Window = window,
             Name = tostring(tabConfig.Name or "Tab"),
-            Button = button,
+            _Button = button,
             Stroke = tabStroke,
             Page = page,
             Layout = layout
@@ -962,7 +962,7 @@ function Library:CreateWindow(config)
                 UDim2.fromOffset(14, 8),
                 UDim2.new(1, -28, 0, 20),
                 Font.Medium,
-                12,
+                13,
                 Library.Theme.Text
             )
 
@@ -973,7 +973,7 @@ function Library:CreateWindow(config)
                     UDim2.fromOffset(14, 29),
                     UDim2.new(1, -28, 0, 17),
                     Font.Regular,
-                    11,
+                    12,
                     Library.Theme.Sub
                 )
             end
@@ -1018,7 +1018,7 @@ function Library:CreateWindow(config)
                 UDim2.fromOffset(14, 8),
                 UDim2.new(1, -90, 0, 20),
                 Font.Medium,
-                12,
+                13,
                 Library.Theme.Text
             )
 
@@ -1029,7 +1029,7 @@ function Library:CreateWindow(config)
                     UDim2.fromOffset(14, 29),
                     UDim2.new(1, -90, 0, 17),
                     Font.Regular,
-                    11,
+                    12,
                     Library.Theme.Sub
                 )
             end
@@ -1123,7 +1123,7 @@ function Library:CreateWindow(config)
                 UDim2.fromOffset(14, 8),
                 UDim2.new(.5, 0, 0, 20),
                 Font.Medium,
-                12,
+                13,
                 Library.Theme.Text
             )
 
@@ -1136,7 +1136,7 @@ function Library:CreateWindow(config)
                 UDim2.new(.5, 0, 0, 8),
                 UDim2.new(.5, -22, 0, 20),
                 Font.Regular,
-                11,
+                12,
                 Library.Theme.Sub
             )
 
@@ -1292,7 +1292,7 @@ function Library:CreateWindow(config)
         function tab:CreateInput(options)
             options = safe(options)
 
-            local frame = makeBase(page, 72)
+            local frame = makeBase(page, options.Description and 86 or 72)
             addItem(frame)
 
             label(
@@ -1301,12 +1301,24 @@ function Library:CreateWindow(config)
                 UDim2.fromOffset(14, 6),
                 UDim2.new(1, -28, 0, 20),
                 Font.Medium,
-                12,
+                13,
                 Library.Theme.Text
             )
 
+            if options.Description then
+                label(
+                    frame,
+                    options.Description,
+                    UDim2.fromOffset(14, 27),
+                    UDim2.new(1, -28, 0, 17),
+                    Font.Regular,
+                    12,
+                    Library.Theme.Sub
+                )
+            end
+
             local box = Instance.new("TextBox")
-            box.Position = UDim2.fromOffset(11, 34)
+            box.Position = UDim2.fromOffset(11, options.Description and 48 or 34)
             box.Size = UDim2.new(1, -22, 0, 29)
             box.BackgroundColor3 = Library.Theme.Input
             box.BorderSizePixel = 0
@@ -1375,9 +1387,21 @@ function Library:CreateWindow(config)
                 UDim2.fromOffset(14, 6),
                 UDim2.new(.7, 0, 0, 20),
                 Font.Medium,
-                12,
+                13,
                 Library.Theme.Text
             )
+
+            if options.Description then
+                label(
+                    frame,
+                    options.Description,
+                    UDim2.fromOffset(14, 27),
+                    UDim2.new(1, -28, 0, 17),
+                    Font.Regular,
+                    12,
+                    Library.Theme.Sub
+                )
+            end
 
             local valueLabel = label(
                 frame,
@@ -1392,7 +1416,7 @@ function Library:CreateWindow(config)
             valueLabel.TextXAlignment = Enum.TextXAlignment.Right
 
             local track = Instance.new("Frame")
-            track.Position = UDim2.fromOffset(14, 46)
+            track.Position = UDim2.fromOffset(14, options.Description and 60 or 46)
             track.Size = UDim2.new(1, -28, 0, 7)
             track.BackgroundColor3 = Library.Theme.ToggleOff
             track.Parent = frame
@@ -1532,7 +1556,7 @@ function Library:CreateWindow(config)
                 UDim2.fromOffset(3, 0),
                 UDim2.new(1, -6, 0, 30),
                 Font.Regular,
-                11,
+                12,
                 Library.Theme.Sub
             )
 
@@ -1570,7 +1594,7 @@ function Library:CreateWindow(config)
                 UDim2.fromOffset(14, 32),
                 UDim2.new(1, -28, 1, -40),
                 Font.Regular,
-                11,
+                12,
                 Library.Theme.Sub
             )
 
@@ -1601,7 +1625,7 @@ function Library:CreateWindow(config)
             options = safe(options)
 
             local frame = Instance.new("TextButton")
-            frame.Size = UDim2.new(1, 0, 0, 56)
+            frame.Size = UDim2.new(1, 0, 0, options.Description and 72 or 56)
             frame.BackgroundColor3 = Library.Theme.Panel
             frame.BorderSizePixel = 0
             frame.Text = ""
@@ -1618,9 +1642,21 @@ function Library:CreateWindow(config)
                 UDim2.fromOffset(14, 8),
                 UDim2.new(.7, 0, 0, 20),
                 Font.Medium,
-                12,
+                13,
                 Library.Theme.Text
             )
+
+            if options.Description then
+                label(
+                    frame,
+                    options.Description,
+                    UDim2.fromOffset(14, 29),
+                    UDim2.new(.7, 0, 0, 17),
+                    Font.Regular,
+                    12,
+                    Library.Theme.Sub
+                )
+            end
 
             local key = options.KeyCode or Enum.KeyCode.F
 
@@ -1695,60 +1731,74 @@ function Library:CreateWindow(config)
         -- Simplified API aliases
         --==================================================
 
-        function tab:Button(name, callback)
+        -- Short API. Old Create* API remains fully supported.
+        -- Description is optional and can be supplied without breaking old scripts.
+        function tab:Button(name, callbackOrDescription, callback)
             if type(name) == "table" then
                 return self:CreateButton(name)
             end
 
+            local description
+            if type(callbackOrDescription) == "function" then
+                callback = callbackOrDescription
+            else
+                description = callbackOrDescription
+            end
+
             return self:CreateButton({
                 Title = tostring(name or "Button"),
+                Description = description,
                 Callback = callback
             })
         end
 
-        function tab:Toggle(name, default, callback)
+        function tab:Toggle(name, default, callback, description)
             if type(name) == "table" then
                 return self:CreateToggle(name)
             end
 
             return self:CreateToggle({
                 Title = tostring(name or "Toggle"),
+                Description = description,
                 Default = default == true,
                 Callback = callback
             })
         end
 
-        function tab:Dropdown(name, options, callback)
+        function tab:Dropdown(name, options, callback, description)
             if type(name) == "table" then
                 return self:CreateDropdown(name)
             end
 
             return self:CreateDropdown({
                 Title = tostring(name or "Dropdown"),
+                Description = description,
                 Options = options or {},
                 Callback = callback
             })
         end
 
-        function tab:Input(name, callback, placeholder)
+        function tab:Input(name, callback, placeholder, description)
             if type(name) == "table" then
                 return self:CreateInput(name)
             end
 
             return self:CreateInput({
                 Title = tostring(name or "Input"),
+                Description = description,
                 Placeholder = placeholder or "Escribe algo...",
                 Callback = callback
             })
         end
 
-        function tab:Slider(name, min, max, default, callback)
+        function tab:Slider(name, min, max, default, callback, description)
             if type(name) == "table" then
                 return self:CreateSlider(name)
             end
 
             return self:CreateSlider({
                 Title = tostring(name or "Slider"),
+                Description = description,
                 Min = min,
                 Max = max,
                 Default = default,
@@ -1757,6 +1807,9 @@ function Library:CreateWindow(config)
         end
 
         function tab:Section(name)
+            if type(name) == "table" then
+                return self:CreateSection(name)
+            end
             return self:CreateSection(name)
         end
 
