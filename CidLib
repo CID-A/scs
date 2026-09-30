@@ -351,6 +351,10 @@ end
 function Library:CreateWindow(config)
     config = safe(config)
 
+    if config.Theme then
+        Library:SetTheme(config.Theme)
+    end
+
     local gui = createGui(config)
 
     local camera = workspace.CurrentCamera
@@ -851,7 +855,11 @@ function Library:CreateWindow(config)
     end
 
     function window:CreateTab(tabConfig)
-        tabConfig = safe(tabConfig)
+        if type(tabConfig) == "string" then
+            tabConfig = {Name = tabConfig}
+        else
+            tabConfig = safe(tabConfig)
+        end
 
         local button = Instance.new("TextButton")
         button.Size = UDim2.new(1, -6, 0, 42)
@@ -948,7 +956,7 @@ function Library:CreateWindow(config)
 
             label(
                 frame,
-                options.Name or "Button",
+                options.Title or options.Name or "Button",
                 UDim2.fromOffset(14, 8),
                 UDim2.new(1, -28, 0, 20),
                 Font.Medium,
@@ -1004,7 +1012,7 @@ function Library:CreateWindow(config)
 
             label(
                 button,
-                options.Name or "Toggle",
+                options.Title or options.Name or "Toggle",
                 UDim2.fromOffset(14, 8),
                 UDim2.new(1, -90, 0, 20),
                 Font.Medium,
@@ -1109,7 +1117,7 @@ function Library:CreateWindow(config)
 
             label(
                 headerButton,
-                options.Name or "Dropdown",
+                options.Title or options.Name or "Dropdown",
                 UDim2.fromOffset(14, 8),
                 UDim2.new(.5, 0, 0, 20),
                 Font.Medium,
@@ -1287,7 +1295,7 @@ function Library:CreateWindow(config)
 
             label(
                 frame,
-                options.Name or "Input",
+                options.Title or options.Name or "Input",
                 UDim2.fromOffset(14, 6),
                 UDim2.new(1, -28, 0, 20),
                 Font.Medium,
@@ -1361,7 +1369,7 @@ function Library:CreateWindow(config)
 
             label(
                 frame,
-                options.Name or "Slider",
+                options.Title or options.Name or "Slider",
                 UDim2.fromOffset(14, 6),
                 UDim2.new(.7, 0, 0, 20),
                 Font.Medium,
@@ -1493,7 +1501,11 @@ function Library:CreateWindow(config)
         end
 
         function tab:CreateSection(options)
-            options = safe(options)
+            if type(options) == "string" then
+                options = {Name = options}
+            else
+                options = safe(options)
+            end
 
             local sectionLabel = label(
                 page,
@@ -1531,7 +1543,11 @@ function Library:CreateWindow(config)
         end
 
         function tab:CreateParagraph(options)
-            options = safe(options)
+            if type(options) == "string" then
+                options = {Content = options}
+            else
+                options = safe(options)
+            end
 
             local frame = makeBase(page, options.Height or 82)
             addItem(frame)
@@ -1596,7 +1612,7 @@ function Library:CreateWindow(config)
 
             label(
                 frame,
-                options.Name or "Keybind",
+                options.Title or options.Name or "Keybind",
                 UDim2.fromOffset(14, 8),
                 UDim2.new(.7, 0, 0, 20),
                 Font.Medium,
@@ -1929,6 +1945,55 @@ function Library:CreateWindow(config)
         end
 
         return false
+    end
+
+    -- Optional simple settings tab. This is intentionally not an Interface Manager.
+    function window:CreateSettingsTab(options)
+        options = safe(options)
+
+        local settings = self:CreateTab(options.Name or "Settings")
+        settings:CreateSection("Appearance")
+
+        local themeDropdown = settings:CreateDropdown({
+            Title = "Theme",
+            Options = Library:GetThemes(),
+            Default = Library:GetTheme(),
+            Callback = function(value)
+                Library:SetTheme(value)
+            end
+        })
+
+        settings:CreateSlider({
+            Title = "UI Scale",
+            Min = 0.75,
+            Max = 1.25,
+            Step = 0.05,
+            Default = self:GetScale(),
+            Callback = function(value)
+                self:SetScale(value)
+            end
+        })
+
+        settings:CreateSlider({
+            Title = "Transparency",
+            Min = 0,
+            Max = 0.65,
+            Step = 0.05,
+            Default = self:GetTransparency(),
+            Callback = function(value)
+                self:SetTransparency(value)
+            end
+        })
+
+        settings:CreateButton({
+            Title = "Reset Theme",
+            Callback = function()
+                Library:ResetTheme()
+                themeDropdown:Set(Library:GetTheme())
+            end
+        })
+
+        return settings
     end
 
     function window:SetUserProfileVisible(value)
