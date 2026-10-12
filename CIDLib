@@ -1,23 +1,15 @@
-local PreviousInstance
-if type(_G) == "table" then
-    PreviousInstance = _G.CID_UI_Instance
-end
-if type(PreviousInstance) == "table" and type(PreviousInstance.Destroy) == "function" then
-    pcall(function() PreviousInstance:Destroy() end)
-end
-
 local Library = {
     Name = "CID UI",
-    Version = "2.2.0",
+    Version = "2.3.0",
     _Windows = {},
     _Themes = {},
     _ActiveTheme = "Dark",
     _ScreenGui = nil,
+    _InstanceName = nil,
     _NotificationQueue = {},
-    _MaxNotifications = 5
+    _MaxNotifications = 5,
+    _Destroyed = false
 }
-
-pcall(function() _G.CID_UI_Instance = Library end)
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
@@ -312,12 +304,244 @@ local function getParent()
     return CoreGui
 end
 
-local function getSharedGui()
+local function makeStub()
+    local stub = {}
+    local mt = {
+        __index = function() return stub end,
+        __call = function() return stub end
+    }
+    return setmetatable(stub, mt)
+end
+
+local function getRegistry()
+    if type(_G) ~= "table" then return {} end
+    if type(_G.CID_UI_Registry) ~= "table" then
+        _G.CID_UI_Registry = {}
+    end
+    return _G.CID_UI_Registry
+end
+
+local function pruneRegistry()
+    local reg = getRegistry()
+    for i = #reg, 1, -1 do
+        local entry = reg[i]
+        if type(entry) ~= "table"
+        or type(entry.Library) ~= "table"
+        or entry.Library._Destroyed then
+            table.remove(reg, i)
+        end
+    end
+    return reg
+end
+
+local function showConflictDialog(count)
+    local parent = getParent()
+    local tempGui = Instance.new("ScreenGui")
+    tempGui.Name = "CID_UI_Conflict"
+    tempGui.ResetOnSpawn = false
+    tempGui.IgnoreGuiInset = true
+    tempGui.DisplayOrder = 99999
+    tempGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    tempGui.Parent = parent
+
+    local overlay = Instance.new("Frame")
+    overlay.Name = "Overlay"
+    overlay.Size = UDim2.fromScale(1, 1)
+    overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    overlay.BackgroundTransparency = 1
+    overlay.BorderSizePixel = 0
+    overlay.Active = true
+    overlay.ZIndex = 1
+    overlay.Parent = tempGui
+
+    local dialog = Instance.new("Frame")
+    dialog.Name = "Dialog"
+    dialog.AnchorPoint = Vector2.new(.5, .5)
+    dialog.Position = UDim2.fromScale(.5, .5)
+    dialog.Size = UDim2.fromOffset(470, 220)
+    dialog.BackgroundColor3 = DefaultTheme.Panel
+    dialog.BorderSizePixel = 0
+    dialog.ZIndex = 2
+    dialog.Parent = overlay
+    corner(dialog, 14)
+    stroke(dialog, DefaultTheme.Stroke, .2)
+
+    local dialogScale = Instance.new("UIScale")
+    dialogScale.Scale = 0.9
+    dialogScale.Parent = dialog
+
+    local titleLbl = Instance.new("TextLabel")
+    titleLbl.BackgroundTransparency = 1
+    titleLbl.Text = "Ya hay un UI activo"
+    titleLbl.Position = UDim2.fromOffset(24, 22)
+    titleLbl.Size = UDim2.new(1, -48, 0, 26)
+    titleLbl.Font = Font.Title
+    titleLbl.TextSize = 17
+    titleLbl.TextColor3 = DefaultTheme.Text
+    titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+    titleLbl.ZIndex = 3
+    titleLbl.Parent = dialog
+
+    local contentLbl = Instance.new("TextLabel")
+    contentLbl.BackgroundTransparency = 1
+    contentLbl.Text = "Se detectaron " .. tostring(count) .. " instancia(s) de CID UI ejecutandose. ¿Que quieres hacer?"
+    contentLbl.Position = UDim2.fromOffset(24, 58)
+    contentLbl.Size = UDim2.new(1, -48, 0, 60)
+    contentLbl.Font = Font.Regular
+    contentLbl.TextSize = 13
+    contentLbl.TextColor3 = DefaultTheme.Sub
+    contentLbl.TextXAlignment = Enum.TextXAlignment.Left
+    contentLbl.TextYAlignment = Enum.TextYAlignment.Top
+    contentLbl.TextWrapped = true
+    contentLbl.ZIndex = 3
+    contentLbl.Parent = dialog
+
+    local holder = Instance.new("Frame")
+    holder.AnchorPoint = Vector2.new(0, 1)
+    holder.Position = UDim2.new(0, 24, 1, -20)
+    holder.Size = UDim2.new(1, -48, 0, 38)
+    holder.BackgroundTransparency = 1
+    holder.ZIndex = 3
+    holder.Parent = dialog
+
+    local layout = Instance.new("UIListLayout")
+    layout.FillDirection = Enum.FillDirection.Horizontal
+    layout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+    layout.VerticalAlignment = Enum.VerticalAlignment.Center
+    layout.Padding = UDim.new(0, 8)
+    layout.Parent = holder
+
+    local resolved = false
+    local choice = nil
+
+    local function makeBtn(text, primary, width)
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.fromOffset(width or 100, 36)
+        btn.BackgroundColor3 = primary and DefaultTheme.Accent or DefaultTheme.Button
+        btn.BorderSizePixel = 0
+        btn.Text = text
+        btn.Font = Font.Medium
+        btn.TextSize = 12
+        btn.TextColor3 = primary and DefaultTheme.AccentText or DefaultTheme.Text
+        btn.AutoButtonColor = false
+        btn.ZIndex = 4
+        btn.Parent = holder
+        corner(btn, 9)
+
+        btn.MouseEnter:Connect(function()
+            if primary then
+                btn.BackgroundColor3 = DefaultTheme.Accent:Lerp(DefaultTheme.Hover, .3)
+            else
+                btn.BackgroundColor3 = DefaultTheme.Hover
+            end
+        end)
+        btn.MouseLeave:Connect(function()
+            btn.BackgroundColor3 = primary and DefaultTheme.Accent or DefaultTheme.Button
+        end)
+        return btn
+    end
+
+    local cancelBtn = makeBtn("Cancelar", false)
+    local replaceBtn = makeBtn("Ejecutar", false)
+    local bothBtn = makeBtn("Ambos", true)
+
+    local function resolve(value)
+        if resolved then return end
+        resolved = true
+        choice = value
+    end
+
+    cancelBtn.MouseButton1Click:Connect(function() resolve("cancel") end)
+    replaceBtn.MouseButton1Click:Connect(function() resolve("replace") end)
+    bothBtn.MouseButton1Click:Connect(function() resolve("coexist") end)
+
+    task.delay(45, function() resolve("cancel") end)
+
+    task.defer(function()
+        if tempGui.Parent then
+            tween(overlay, .18, { BackgroundTransparency = .5 }):Play()
+            tween(dialogScale, .22, { Scale = 1 }):Play()
+        end
+    end)
+
+    while choice == nil do
+        task.wait(.1)
+    end
+
+    local fadeOverlay = tween(overlay, .15, { BackgroundTransparency = 1 })
+    fadeOverlay:Play()
+    tween(dialogScale, .15, { Scale = 0.9 }):Play()
+    fadeOverlay.Completed:Wait()
+
+    if tempGui.Parent then
+        tempGui:Destroy()
+    end
+
+    return choice
+end
+
+local existingRegistry = pruneRegistry()
+
+if type(_G) == "table" and type(_G.CID_UI_Instance) == "table"
+and type(_G.CID_UI_Instance.Destroy) == "function"
+and not _G.CID_UI_Instance._Destroyed then
+    local alreadyListed = false
+    for _, entry in ipairs(existingRegistry) do
+        if entry.Library == _G.CID_UI_Instance then
+            alreadyListed = true
+            break
+        end
+    end
+    if not alreadyListed then
+        table.insert(existingRegistry, {
+            Library = _G.CID_UI_Instance,
+            ResolvedName = "CID_UI_Shared"
+        })
+    end
+end
+
+local forceCoexist = false
+
+if #existingRegistry > 0 then
+    local behavior = nil
+    if type(_G) == "table" then
+        behavior = _G.CID_UI_ConflictBehavior
+    end
+
+    if behavior == "cancel" then
+        return makeStub()
+    elseif behavior == "replace" then
+        for _, entry in ipairs(existingRegistry) do
+            pcall(function() entry.Library:Destroy() end)
+        end
+    elseif behavior == "coexist" then
+        forceCoexist = true
+    else
+        local picked = showConflictDialog(#existingRegistry)
+        if picked == "cancel" then
+            return makeStub()
+        elseif picked == "replace" then
+            for _, entry in ipairs(existingRegistry) do
+                pcall(function() entry.Library:Destroy() end)
+            end
+        elseif picked == "coexist" then
+            forceCoexist = true
+        end
+    end
+end
+
+Library._Themes.Dark = copyTheme(DefaultTheme)
+for name, theme in pairs(PresetThemes) do
+    Library._Themes[name] = mergeTheme(DefaultTheme, theme)
+end
+Library.Theme = copyTheme(Library._Themes.Dark)
+
+local function getSharedGui(name)
     if Library._ScreenGui and Library._ScreenGui.Parent then
         return Library._ScreenGui
     end
     local parent = getParent()
-    local existing = parent:FindFirstChild("CID_UI_Shared")
+    local existing = parent:FindFirstChild(name)
     if existing then
         for _, child in ipairs(existing:GetChildren()) do
             pcall(function() child:Destroy() end)
@@ -326,7 +550,7 @@ local function getSharedGui()
         return existing
     end
     local gui = Instance.new("ScreenGui")
-    gui.Name = "CID_UI_Shared"
+    gui.Name = name
     gui.ResetOnSpawn = false
     gui.IgnoreGuiInset = true
     gui.DisplayOrder = 999
@@ -336,18 +560,14 @@ local function getSharedGui()
     return gui
 end
 
-Library._Themes.Dark = copyTheme(DefaultTheme)
-for name, theme in pairs(PresetThemes) do
-    Library._Themes[name] = mergeTheme(DefaultTheme, theme)
-end
-Library.Theme = copyTheme(Library._Themes.Dark)
-
 local function ensureNotificationContainer()
-    local gui = getSharedGui()
-    local existing = gui:FindFirstChild("CID_Notifications")
+    local name = Library._InstanceName or "CID_UI"
+    local gui = getSharedGui(name)
+    local notifName = "CID_Notifications_" .. name
+    local existing = gui:FindFirstChild(notifName)
     if existing then return existing end
     local container = Instance.new("Frame")
-    container.Name = "CID_Notifications"
+    container.Name = notifName
     container.AnchorPoint = Vector2.new(1, 1)
     container.Position = UDim2.new(1, -18, 1, -18)
     container.Size = UDim2.fromOffset(360, 0)
@@ -450,7 +670,44 @@ end
 
 function Library:CreateWindow(config)
     config = safe(config)
-    local gui = getSharedGui()
+
+    local resolvedName
+
+    if Library._InstanceName then
+        resolvedName = Library._InstanceName
+    else
+        local baseName = tostring(config.Name or "CID_UI")
+
+        if forceCoexist then
+            local reg = getRegistry()
+            local taken = {}
+            for _, entry in ipairs(reg) do
+                taken[entry.ResolvedName] = true
+            end
+            if not taken[baseName] then
+                resolvedName = baseName
+            else
+                local i = 2
+                while taken[baseName .. i] do i = i + 1 end
+                resolvedName = baseName .. i
+            end
+        else
+            resolvedName = baseName
+        end
+
+        Library._InstanceName = resolvedName
+
+        table.insert(getRegistry(), {
+            Library = Library,
+            ResolvedName = resolvedName
+        })
+
+        pcall(function()
+            _G.CID_UI_Instance = Library
+        end)
+    end
+
+    local gui = getSharedGui(resolvedName)
 
     local windowTheme = Library.Theme
     if config.Theme and Library._Themes[config.Theme] then
@@ -689,6 +946,7 @@ function Library:CreateWindow(config)
 
     local resizeConns = {}
     local minWidth, minHeight = 320, 220
+
     local resizeHandle = Instance.new("Frame")
     resizeHandle.Name = "ResizeHandle"
     resizeHandle.AnchorPoint = Vector2.new(1, 1)
@@ -735,41 +993,41 @@ function Library:CreateWindow(config)
     line3.Parent = resizeIcon
     corner(line3, 1)
 
-do
-    local dragging = false
-    local startMouse, startSize, activeInput
+    do
+        local dragging = false
+        local startMouse, startSize, activeInput
 
-    local c1 = resizeHandle.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            activeInput = input
-            startMouse = input.Position
-            startSize = main.AbsoluteSize
-        end
-    end)
+        local c1 = resizeHandle.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                activeInput = input
+                startMouse = input.Position
+                startSize = main.AbsoluteSize
+            end
+        end)
 
-    local c2 = UIS.InputChanged:Connect(function(input)
-        if not dragging or input ~= activeInput then return end
-        if input.UserInputType ~= Enum.UserInputType.MouseMovement
-        and input.UserInputType ~= Enum.UserInputType.Touch then return end
-        local delta = input.Position - startMouse
-        local newW = math.max(minWidth, startSize.X + delta.X)
-        local newH = math.max(minHeight, startSize.Y + delta.Y)
-        main.Size = UDim2.fromOffset(newW, newH)
-    end)
+        local c2 = UIS.InputChanged:Connect(function(input)
+            if not dragging or input ~= activeInput then return end
+            if input.UserInputType ~= Enum.UserInputType.MouseMovement
+            and input.UserInputType ~= Enum.UserInputType.Touch then return end
+            local delta = input.Position - startMouse
+            local newW = math.max(minWidth, startSize.X + delta.X)
+            local newH = math.max(minHeight, startSize.Y + delta.Y)
+            main.Size = UDim2.fromOffset(newW, newH)
+        end)
 
-    local c3 = UIS.InputEnded:Connect(function(input)
-        if input == activeInput then
-            dragging = false
-            activeInput = nil
-        end
-    end)
+        local c3 = UIS.InputEnded:Connect(function(input)
+            if input == activeInput then
+                dragging = false
+                activeInput = nil
+            end
+        end)
 
-    table.insert(resizeConns, c1)
-    table.insert(resizeConns, c2)
-    table.insert(resizeConns, c3)
-end
+        table.insert(resizeConns, c1)
+        table.insert(resizeConns, c2)
+        table.insert(resizeConns, c3)
+    end
 
     local window = {
         Gui = gui,
@@ -2355,6 +2613,13 @@ end
 
 function Library:GetName() return self.Name end
 function Library:GetVersion() return self.Version end
+function Library:GetInstanceName() return self._InstanceName or "CID_UI" end
+
+function Library:SetInstanceName(name)
+    if self._InstanceName then return false end
+    self._InstanceName = tostring(name or "CID_UI")
+    return true
+end
 
 function Library:SetMaxNotifications(n)
     self._MaxNotifications = math.max(1, math.floor(tonumber(n) or 5))
@@ -2369,20 +2634,33 @@ function Library:GetWindows()
 end
 
 function Library:Destroy()
+    if self._Destroyed then return end
+    self._Destroyed = true
+
     for i = #self._Windows, 1, -1 do
         local w = self._Windows[i]
         if w and not w.Destroyed then pcall(function() w:Destroy() end) end
     end
     self._Windows = {}
+
     for i = #self._NotificationQueue, 1, -1 do
         local n = self._NotificationQueue[i]
         if n and n.Parent then pcall(function() n:Destroy() end) end
     end
     self._NotificationQueue = {}
+
     if self._ScreenGui and self._ScreenGui.Parent then
         pcall(function() self._ScreenGui:Destroy() end)
     end
     self._ScreenGui = nil
+
+    local reg = getRegistry()
+    for i = #reg, 1, -1 do
+        if reg[i].Library == self then
+            table.remove(reg, i)
+        end
+    end
+
     pcall(function()
         if _G.CID_UI_Instance == self then
             _G.CID_UI_Instance = nil
