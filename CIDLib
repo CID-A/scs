@@ -1,6 +1,6 @@
 local Library = {
     Name = "CID UI",
-    Version = "2.5.0",
+    Version = "2.5.1",
     _Windows = {},
     _Themes = {},
     _ActiveTheme = "Dark",
@@ -1149,6 +1149,10 @@ function Library:CreateWindow(config)
             item._Button.BackgroundTransparency = selected and 0 or 0.35
             item._Button.TextColor3 = selected and windowTheme.Accent or windowTheme.Sub
             item._Button.Font = selected and Font.Title or Font.Medium
+            if item._Text then
+                item._Text.TextColor3 = selected and windowTheme.Accent or windowTheme.Sub
+                item._Text.Font = selected and Font.Title or Font.Medium
+            end
             if item._Icon then
                 item._Icon.ImageColor3 = selected and windowTheme.Accent or windowTheme.Sub
             end
@@ -2442,7 +2446,7 @@ function Library:CreateWindow(config)
         return tab
     end
 
-    window.Tab = function(self, cfg) return self:CreateTab(cfg) end
+    window.Tab = window.CreateTab
 
     function window:Dialog(options)
         options = safe(options)
