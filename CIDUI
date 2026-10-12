@@ -3,259 +3,133 @@
 local Library = {}
 
 Library.Icons = {
-    Home = "rbxassetid://10734943448",
-    Settings = "rbxassetid://10734950309",
-    Settings2 = "rbxassetid://10734950020",
-    Search = "rbxassetid://10734943674",
-    Menu = "rbxassetid://10734954301",
-    Sidebar = "rbxassetid://10734954301",
-    SidebarOpen = "rbxassetid://10734954000",
-    SidebarClose = "rbxassetid://10734953715",
-    Sliders = "rbxassetid://10734963400",
-    SlidersH = "rbxassetid://10734963191",
-    Filter = "rbxassetid://10734944115",
-    Separator = "rbxassetid://10734944326",
-    User = "rbxassetid://10747373176",
-    Users = "rbxassetid://10747373426",
-    UserCheck = "rbxassetid://10747371901",
-    UserCog = "rbxassetid://10747372167",
-    UserPlus = "rbxassetid://10747372702",
-    UserMinus = "rbxassetid://10747372346",
-    UserX = "rbxassetid://10747372992",
-    Player = "rbxassetid://10747373176",
-    Sword = "rbxassetid://10734975486",
-    Swords = "rbxassetid://10734975692",
-    Shield = "rbxassetid://10734951847",
-    ShieldCheck = "rbxassetid://10734951367",
-    ShieldAlert = "rbxassetid://10734951173",
-    ShieldClose = "rbxassetid://10734951535",
-    ShieldOff = "rbxassetid://10734951684",
-    Target = "rbxassetid://10734977012",
-    Crosshair = "rbxassetid://10734977012",
-    Skull = "rbxassetid://10734962068",
-    Siren = "rbxassetid://10734961284",
-    Syringe = "rbxassetid://10734975932",
-    Star = "rbxassetid://10734966248",
-    StarHalf = "rbxassetid://10734965897",
-    StarOff = "rbxassetid://10734966097",
-    Heart = "rbxassetid://10734966248",
-    Smile = "rbxassetid://10734964441",
-    SmilePlus = "rbxassetid://10734964188",
-    ThumbsUp = "rbxassetid://10734983629",
-    ThumbsDown = "rbxassetid://10734983359",
-    Check = "rbxassetid://10734951367",
-    Verified = "rbxassetid://10747374131",
-    Info = "rbxassetid://10734943674",
-    Warning = "rbxassetid://10734951173",
-    Bell = "rbxassetid://10734961284",
-    MessageQ = "rbxassetid://16970049192",
-    Trash = "rbxassetid://10747362393",
-    Trash2 = "rbxassetid://10747362241",
-    Save = "rbxassetid://10734941499",
-    Folder = "rbxassetid://10734951038",
-    Sheet = "rbxassetid://10734951038",
-    Scroll = "rbxassetid://10734943448",
-    StickyNote = "rbxassetid://10734972463",
-    Book = "rbxassetid://10734943448",
-    Tag = "rbxassetid://10734976528",
-    Tags = "rbxassetid://10734976739",
-    Ticket = "rbxassetid://10734983868",
-    Gift = "rbxassetid://10747361919",
-    ToyBrick = "rbxassetid://10747361919",
-    Wallet = "rbxassetid://10747376205",
-    ShoppingBag = "rbxassetid://10734952273",
-    ShoppingCart = "rbxassetid://10734952479",
-    Key = "rbxassetid://10747366027",
-    Lock = "rbxassetid://10747365771",
-    Unlock = "rbxassetid://10747366027",
-    Camera = "rbxassetid://10734975214",
-    SwitchCamera = "rbxassetid://10734975214",
-    Video = "rbxassetid://10747374938",
-    VideoOff = "rbxassetid://10747374721",
-    Eye = "rbxassetid://10747375132",
-    View = "rbxassetid://10747375132",
-    Image = "rbxassetid://10747375132",
-    Webcam = "rbxassetid://10747381992",
-    Play = "rbxassetid://10734961809",
-    Pause = "rbxassetid://10734961526",
-    SkipBack = "rbxassetid://10734961526",
-    SkipForward = "rbxassetid://10734961809",
-    Volume = "rbxassetid://10747376008",
-    Volume1 = "rbxassetid://10747375450",
-    Volume2 = "rbxassetid://10747375679",
-    VolumeX = "rbxassetid://10747375880",
-    Speaker = "rbxassetid://10734965419",
-    Mic = "rbxassetid://10747381992",
-    Timer = "rbxassetid://10734984606",
-    TimerOff = "rbxassetid://10734984138",
-    TimerReset = "rbxassetid://10734984355",
-    Clock = "rbxassetid://10734984606",
-    Sun = "rbxassetid://10734974297",
-    SunDim = "rbxassetid://10734973645",
-    SunMedium = "rbxassetid://10734973778",
-    SunMoon = "rbxassetid://10734973999",
-    SunSnow = "rbxassetid://10734974130",
-    Sunrise = "rbxassetid://10734974522",
-    Sunset = "rbxassetid://10734974689",
-    Moon = "rbxassetid://10734973999",
-    Snowflake = "rbxassetid://10734964600",
-    Cloud = "rbxassetid://10734964600",
-    Wind = "rbxassetid://10747382750",
-    Tornado = "rbxassetid://10734985247",
-    Waves = "rbxassetid://10747376931",
-    Umbrella = "rbxassetid://10747364971",
-    Thermometer = "rbxassetid://10734983134",
-    Drop = "rbxassetid://10747364971",
-    Map = "rbxassetid://10734981750",
-    MapPin = "rbxassetid://10734977012",
-    Compass = "rbxassetid://10734977012",
-    Globe = "rbxassetid://10747376931",
-    Navigation = "rbxassetid://10734961809",
-    Send = "rbxassetid://10734943902",
-    Anchor = "rbxassetid://10747364971",
-    File = "rbxassetid://10734951038",
-    FileText = "rbxassetid://10734951038",
-    FilePlus = "rbxassetid://10734951038",
-    FolderOpen = "rbxassetid://10734951038",
-    Download = "rbxassetid://10747365484",
-    Upload = "rbxassetid://10747366434",
-    UploadCloud = "rbxassetid://10747366266",
-    Share = "rbxassetid://10734950813",
-    Share2 = "rbxassetid://10734950553",
-    Link = "rbxassetid://10747365771",
-    Unlink = "rbxassetid://10747365771",
-    Copy = "rbxassetid://10734951038",
-    Clipboard = "rbxassetid://10734951038",
-    ExternalLink = "rbxassetid://10747365771",
-    Server = "rbxassetid://10734949856",
-    ServerCog = "rbxassetid://10734944444",
-    ServerCrash = "rbxassetid://10734944554",
-    ServerOff = "rbxassetid://10734944668",
-    Database = "rbxassetid://10734949856",
-    Terminal = "rbxassetid://10734982144",
-    TerminalSq = "rbxassetid://10734981995",
-    Cpu = "rbxassetid://10734949856",
-    HardDrive = "rbxassetid://10734949856",
-    Usb = "rbxassetid://10747366606",
-    Wifi = "rbxassetid://10747382504",
-    WifiOff = "rbxassetid://10747382268",
-    Signal = "rbxassetid://10734961133",
-    SignalHigh = "rbxassetid://10734954807",
-    SignalLow = "rbxassetid://10734955080",
-    SignalMed = "rbxassetid://10734955336",
-    SignalZero = "rbxassetid://10734960878",
-    Activity = "rbxassetid://10734961133",
-    Bluetooth = "rbxassetid://10747382504",
-    Smartphone = "rbxassetid://10734963940",
-    SmartCharge = "rbxassetid://10734963671",
-    Tablet = "rbxassetid://10734976394",
-    Monitor = "rbxassetid://10734943193",
-    Tv = "rbxassetid://10747364593",
-    Tv2 = "rbxassetid://10747364302",
-    Watch = "rbxassetid://10747376722",
-    Battery = "rbxassetid://10734963671",
-    Power = "rbxassetid://10734963671",
-    Zap = "rbxassetid://10734985247",
-    Bolt = "rbxassetid://10734985247",
-    Flame = "rbxassetid://10734961284",
-    Fire = "rbxassetid://10734961284",
-    Sparkles = "rbxassetid://10734966248",
-    Wand = "rbxassetid://10747376565",
-    Wand2 = "rbxassetid://10747376349",
-    Graduation = "rbxassetid://10734943448",
-    BookOpen = "rbxassetid://10734943448",
-    Pencil = "rbxassetid://10734941499",
-    PenTool = "rbxassetid://10734941499",
-    Edit = "rbxassetid://10734941499",
-    Scissors = "rbxassetid://10734942778",
-    Ruler = "rbxassetid://10734941018",
-    Type = "rbxassetid://10747364761",
-    Bold = "rbxassetid://10747365191",
-    Italic = "rbxassetid://10747365191",
-    Underline = "rbxassetid://10747365191",
-    Strike = "rbxassetid://10734973290",
-    WrapText = "rbxassetid://10747383065",
-    Dollar = "rbxassetid://10734941199",
-    Ruble = "rbxassetid://10734941199",
-    Franc = "rbxassetid://10734975024",
-    CreditCard = "rbxassetid://10747376205",
-    Coins = "rbxassetid://10747376205",
-    Receipt = "rbxassetid://10734983868",
-    Wrench = "rbxassetid://10747383470",
-    Hammer = "rbxassetid://10747383470",
-    Tool = "rbxassetid://10747383470",
-    Shovel = "rbxassetid://10734952773",
-    Shirt = "rbxassetid://10734952036",
-    Anchor2 = "rbxassetid://10734941354",
-    Sailboat = "rbxassetid://10734941354",
-    Plane = "rbxassetid://10734961809",
-    Train = "rbxassetid://10747362105",
-    Truck = "rbxassetid://10747364031",
-    Car = "rbxassetid://10747364031",
-    Rocket = "rbxassetid://10734961809",
-    Tree = "rbxassetid://10747363016",
-    TreeDecid = "rbxassetid://10747362534",
-    TreePine = "rbxassetid://10747362748",
-    Shrub = "rbxassetid://10734953241",
-    Sprout = "rbxassetid://10734965572",
-    Leaf = "rbxassetid://10734965572",
-    Flower = "rbxassetid://10734965572",
-    Wheat = "rbxassetid://80877624162595",
-    Mountain = "rbxassetid://10747362534",
-    Tent = "rbxassetid://10734981750",
-    Cat = "rbxassetid://16935650691",
-    Utensils = "rbxassetid://10747373821",
-    UtensilsX = "rbxassetid://10747373629",
-    Coffee = "rbxassetid://10747373821",
-    Pizza = "rbxassetid://10747373821",
-    Stethoscope = "rbxassetid://10734966384",
-    Pill = "rbxassetid://10734975932",
-    Dumbbell = "rbxassetid://18273453053",
-    Crown = "rbxassetid://10734966248",
-    Trophy = "rbxassetid://10747363809",
-    Award = "rbxassetid://10747363809",
-    Medal = "rbxassetid://10747363809",
-    Sparkle = "rbxassetid://10734966248",
-    Diamond = "rbxassetid://10734966248",
-    Gem = "rbxassetid://10734966248",
-    Webhook = "rbxassetid://17320556264",
-    Slack = "rbxassetid://10734962339",
-    Palette = "rbxassetid://10734950309",
-    Brush = "rbxassetid://10734941499",
-    Shuffle = "rbxassetid://10734953451",
-    RefreshCw = "rbxassetid://10734984355",
-    Refresh = "rbxassetid://10734984355",
-    Rotate = "rbxassetid://10734984355",
-    ZoomIn = "rbxassetid://10747384552",
-    ZoomOut = "rbxassetid://10747384679",
-    Maximize = "rbxassetid://10734953073",
-    Minimize = "rbxassetid://10734942072",
-    Expand = "rbxassetid://10734942072",
-    Shrink = "rbxassetid://10734953073",
-    Move = "rbxassetid://10734942072",
-    Hand = "rbxassetid://10734953073",
-    Mouse = "rbxassetid://10734982395",
-    Cursor = "rbxassetid://10734982395",
-    X = "rbxassetid://10747384394",
-    XCircle = "rbxassetid://10747383819",
-    XOctagon = "rbxassetid://10747384037",
-    XSquare = "rbxassetid://10747384217",
-    Plus = "rbxassetid://10747372702",
-    Minus = "rbxassetid://10747372346",
-    Undo = "rbxassetid://10747365484",
-    Undo2 = "rbxassetid://10747365359",
-    TrendingUp = "rbxassetid://10747363465",
-    TrendingDown = "rbxassetid://10747363205",
-    SortAsc = "rbxassetid://10734965115",
-    SortDesc = "rbxassetid://10734965287",
-    Scale = "rbxassetid://10734941912",
-    Scale3D = "rbxassetid://10734941739",
-    Scale2 = "rbxassetid://10734942072",
-    Scan = "rbxassetid://10734942565",
-    ScanFace = "rbxassetid://10734942198",
-    ScanLine = "rbxassetid://10734942351",
-    Arrow = "rbxassetid://10709790948",
-    Down = "rbxassetid://10709790948",
+    Home = "rbxassetid://10734943448", Settings = "rbxassetid://10734950309",
+    Settings2 = "rbxassetid://10734950020", Search = "rbxassetid://10734943674",
+    Menu = "rbxassetid://10734954301", Sidebar = "rbxassetid://10734954301",
+    SidebarOpen = "rbxassetid://10734954000", SidebarClose = "rbxassetid://10734953715",
+    Sliders = "rbxassetid://10734963400", SlidersH = "rbxassetid://10734963191",
+    Filter = "rbxassetid://10734944115", Separator = "rbxassetid://10734944326",
+    User = "rbxassetid://10747373176", Users = "rbxassetid://10747373426",
+    UserCheck = "rbxassetid://10747371901", UserCog = "rbxassetid://10747372167",
+    UserPlus = "rbxassetid://10747372702", UserMinus = "rbxassetid://10747372346",
+    UserX = "rbxassetid://10747372992", Player = "rbxassetid://10747373176",
+    Sword = "rbxassetid://10734975486", Swords = "rbxassetid://10734975692",
+    Shield = "rbxassetid://10734951847", ShieldCheck = "rbxassetid://10734951367",
+    ShieldAlert = "rbxassetid://10734951173", ShieldClose = "rbxassetid://10734951535",
+    ShieldOff = "rbxassetid://10734951684", Target = "rbxassetid://10734977012",
+    Crosshair = "rbxassetid://10734977012", Skull = "rbxassetid://10734962068",
+    Siren = "rbxassetid://10734961284", Syringe = "rbxassetid://10734975932",
+    Star = "rbxassetid://10734966248", StarHalf = "rbxassetid://10734965897",
+    StarOff = "rbxassetid://10734966097", Heart = "rbxassetid://10734966248",
+    Smile = "rbxassetid://10734964441", SmilePlus = "rbxassetid://10734964188",
+    ThumbsUp = "rbxassetid://10734983629", ThumbsDown = "rbxassetid://10734983359",
+    Check = "rbxassetid://10734951367", Verified = "rbxassetid://10747374131",
+    Info = "rbxassetid://10734943674", Warning = "rbxassetid://10734951173",
+    Bell = "rbxassetid://10734961284", MessageQ = "rbxassetid://16970049192",
+    Trash = "rbxassetid://10747362393", Trash2 = "rbxassetid://10747362241",
+    Save = "rbxassetid://10734941499", Folder = "rbxassetid://10734951038",
+    Sheet = "rbxassetid://10734951038", Scroll = "rbxassetid://10734943448",
+    StickyNote = "rbxassetid://10734972463", Book = "rbxassetid://10734943448",
+    Tag = "rbxassetid://10734976528", Tags = "rbxassetid://10734976739",
+    Ticket = "rbxassetid://10734983868", Gift = "rbxassetid://10747361919",
+    ToyBrick = "rbxassetid://10747361919", Wallet = "rbxassetid://10747376205",
+    ShoppingBag = "rbxassetid://10734952273", ShoppingCart = "rbxassetid://10734952479",
+    Key = "rbxassetid://10747366027", Lock = "rbxassetid://10747365771",
+    Unlock = "rbxassetid://10747366027", Camera = "rbxassetid://10734975214",
+    SwitchCamera = "rbxassetid://10734975214", Video = "rbxassetid://10747374938",
+    VideoOff = "rbxassetid://10747374721", Eye = "rbxassetid://10747375132",
+    View = "rbxassetid://10747375132", Image = "rbxassetid://10747375132",
+    Webcam = "rbxassetid://10747381992", Play = "rbxassetid://10734961809",
+    Pause = "rbxassetid://10734961526", SkipBack = "rbxassetid://10734961526",
+    SkipForward = "rbxassetid://10734961809", Volume = "rbxassetid://10747376008",
+    Volume1 = "rbxassetid://10747375450", Volume2 = "rbxassetid://10747375679",
+    VolumeX = "rbxassetid://10747375880", Speaker = "rbxassetid://10734965419",
+    Mic = "rbxassetid://10747381992", Timer = "rbxassetid://10734984606",
+    TimerOff = "rbxassetid://10734984138", TimerReset = "rbxassetid://10734984355",
+    Clock = "rbxassetid://10734984606", Sun = "rbxassetid://10734974297",
+    SunDim = "rbxassetid://10734973645", SunMedium = "rbxassetid://10734973778",
+    SunMoon = "rbxassetid://10734973999", SunSnow = "rbxassetid://10734974130",
+    Sunrise = "rbxassetid://10734974522", Sunset = "rbxassetid://10734974689",
+    Moon = "rbxassetid://10734973999", Snowflake = "rbxassetid://10734964600",
+    Cloud = "rbxassetid://10734964600", Wind = "rbxassetid://10747382750",
+    Tornado = "rbxassetid://10734985247", Waves = "rbxassetid://10747376931",
+    Umbrella = "rbxassetid://10747364971", Thermometer = "rbxassetid://10734983134",
+    Drop = "rbxassetid://10747364971", Map = "rbxassetid://10734981750",
+    MapPin = "rbxassetid://10734977012", Compass = "rbxassetid://10734977012",
+    Globe = "rbxassetid://10747376931", Navigation = "rbxassetid://10734961809",
+    Send = "rbxassetid://10734943902", Anchor = "rbxassetid://10747364971",
+    File = "rbxassetid://10734951038", FileText = "rbxassetid://10734951038",
+    FilePlus = "rbxassetid://10734951038", FolderOpen = "rbxassetid://10734951038",
+    Download = "rbxassetid://10747365484", Upload = "rbxassetid://10747366434",
+    UploadCloud = "rbxassetid://10747366266", Share = "rbxassetid://10734950813",
+    Share2 = "rbxassetid://10734950553", Link = "rbxassetid://10747365771",
+    Unlink = "rbxassetid://10747365771", Copy = "rbxassetid://10734951038",
+    Clipboard = "rbxassetid://10734951038", ExternalLink = "rbxassetid://10747365771",
+    Server = "rbxassetid://10734949856", ServerCog = "rbxassetid://10734944444",
+    ServerCrash = "rbxassetid://10734944554", ServerOff = "rbxassetid://10734944668",
+    Database = "rbxassetid://10734949856", Terminal = "rbxassetid://10734982144",
+    TerminalSq = "rbxassetid://10734981995", Cpu = "rbxassetid://10734949856",
+    HardDrive = "rbxassetid://10734949856", Usb = "rbxassetid://10747366606",
+    Wifi = "rbxassetid://10747382504", WifiOff = "rbxassetid://10747382268",
+    Signal = "rbxassetid://10734961133", SignalHigh = "rbxassetid://10734954807",
+    SignalLow = "rbxassetid://10734955080", SignalMed = "rbxassetid://10734955336",
+    SignalZero = "rbxassetid://10734960878", Activity = "rbxassetid://10734961133",
+    Bluetooth = "rbxassetid://10747382504", Smartphone = "rbxassetid://10734963940",
+    SmartCharge = "rbxassetid://10734963671", Tablet = "rbxassetid://10734976394",
+    Monitor = "rbxassetid://10734943193", Tv = "rbxassetid://10747364593",
+    Tv2 = "rbxassetid://10747364302", Watch = "rbxassetid://10747376722",
+    Battery = "rbxassetid://10734963671", Power = "rbxassetid://10734963671",
+    Zap = "rbxassetid://10734985247", Bolt = "rbxassetid://10734985247",
+    Flame = "rbxassetid://10734961284", Fire = "rbxassetid://10734961284",
+    Sparkles = "rbxassetid://10734966248", Wand = "rbxassetid://10747376565",
+    Wand2 = "rbxassetid://10747376349", Graduation = "rbxassetid://10734943448",
+    BookOpen = "rbxassetid://10734943448", Pencil = "rbxassetid://10734941499",
+    PenTool = "rbxassetid://10734941499", Edit = "rbxassetid://10734941499",
+    Scissors = "rbxassetid://10734942778", Ruler = "rbxassetid://10734941018",
+    Type = "rbxassetid://10747364761", Bold = "rbxassetid://10747365191",
+    Italic = "rbxassetid://10747365191", Underline = "rbxassetid://10747365191",
+    Strike = "rbxassetid://10734973290", WrapText = "rbxassetid://10747383065",
+    Dollar = "rbxassetid://10734941199", Ruble = "rbxassetid://10734941199",
+    Franc = "rbxassetid://10734975024", CreditCard = "rbxassetid://10747376205",
+    Coins = "rbxassetid://10747376205", Receipt = "rbxassetid://10734983868",
+    Wrench = "rbxassetid://10747383470", Hammer = "rbxassetid://10747383470",
+    Tool = "rbxassetid://10747383470", Shovel = "rbxassetid://10734952773",
+    Shirt = "rbxassetid://10734952036", Anchor2 = "rbxassetid://10734941354",
+    Sailboat = "rbxassetid://10734941354", Plane = "rbxassetid://10734961809",
+    Train = "rbxassetid://10747362105", Truck = "rbxassetid://10747364031",
+    Car = "rbxassetid://10747364031", Rocket = "rbxassetid://10734961809",
+    Tree = "rbxassetid://10747363016", TreeDecid = "rbxassetid://10747362534",
+    TreePine = "rbxassetid://10747362748", Shrub = "rbxassetid://10734953241",
+    Sprout = "rbxassetid://10734965572", Leaf = "rbxassetid://10734965572",
+    Flower = "rbxassetid://10734965572", Wheat = "rbxassetid://80877624162595",
+    Mountain = "rbxassetid://10747362534", Tent = "rbxassetid://10734981750",
+    Cat = "rbxassetid://16935650691", Utensils = "rbxassetid://10747373821",
+    UtensilsX = "rbxassetid://10747373629", Coffee = "rbxassetid://10747373821",
+    Pizza = "rbxassetid://10747373821", Stethoscope = "rbxassetid://10734966384",
+    Pill = "rbxassetid://10734975932", Dumbbell = "rbxassetid://18273453053",
+    Crown = "rbxassetid://10734966248", Trophy = "rbxassetid://10747363809",
+    Award = "rbxassetid://10747363809", Medal = "rbxassetid://10747363809",
+    Sparkle = "rbxassetid://10734966248", Diamond = "rbxassetid://10734966248",
+    Gem = "rbxassetid://10734966248", Webhook = "rbxassetid://17320556264",
+    Slack = "rbxassetid://10734962339", Palette = "rbxassetid://10734950309",
+    Brush = "rbxassetid://10734941499", Shuffle = "rbxassetid://10734953451",
+    RefreshCw = "rbxassetid://10734984355", Refresh = "rbxassetid://10734984355",
+    Rotate = "rbxassetid://10734984355", ZoomIn = "rbxassetid://10747384552",
+    ZoomOut = "rbxassetid://10747384679", Maximize = "rbxassetid://10734953073",
+    Minimize = "rbxassetid://10734942072", Expand = "rbxassetid://10734942072",
+    Shrink = "rbxassetid://10734953073", Move = "rbxassetid://10734942072",
+    Hand = "rbxassetid://10734953073", Mouse = "rbxassetid://10734982395",
+    Cursor = "rbxassetid://10734982395", X = "rbxassetid://10747384394",
+    XCircle = "rbxassetid://10747383819", XOctagon = "rbxassetid://10747384037",
+    XSquare = "rbxassetid://10747384217", Plus = "rbxassetid://10747372702",
+    Minus = "rbxassetid://10747372346", Undo = "rbxassetid://10747365484",
+    Undo2 = "rbxassetid://10747365359", TrendingUp = "rbxassetid://10747363465",
+    TrendingDown = "rbxassetid://10747363205", SortAsc = "rbxassetid://10734965115",
+    SortDesc = "rbxassetid://10734965287", Scale = "rbxassetid://10734941912",
+    Scale3D = "rbxassetid://10734941739", Scale2 = "rbxassetid://10734942072",
+    Scan = "rbxassetid://10734942565", ScanFace = "rbxassetid://10734942198",
+    ScanLine = "rbxassetid://10734942351", Arrow = "rbxassetid://10709790948",
+    Down = "rbxassetid://10709790948", Ghost = "rbxassetid://10734962068",
 }
 
 local ICON_ALIASES = {
@@ -310,7 +184,7 @@ Library.Options = {}
 Library.Cleanups = {}
 Library.ToggleKey = Enum.KeyCode.RightShift
 Library.Open = true
-Library.Version = "7.1.0"
+Library.Version = "1.0.0"
 Library.DisplayOrder = 999999
 Library._currentTheme = "Dark"
 Library._rerenders = {}
@@ -693,17 +567,10 @@ function Library:Notify(title, content, duration, image)
     end
     local gui = CoreGui:FindFirstChild("UniversalGUI_Notify")
     if not gui then
-        gui = New("ScreenGui", {
-            Name = "UniversalGUI_Notify", Parent = CoreGui, ResetOnSpawn = false,
-            ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = Library.DisplayOrder
-        })
+        gui = New("ScreenGui", {Name = "UniversalGUI_Notify", Parent = CoreGui, ResetOnSpawn = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = Library.DisplayOrder})
     end
     local th = T()
-    local N = New("Frame", {
-        Parent = gui, Size = UDim2.new(0, 300, 0, NOTIFY_HEIGHT),
-        Position = UDim2.new(1, 320, 1, NOTIFY_BASE_Y),
-        BackgroundColor3 = th.Element, BackgroundTransparency = 1
-    })
+    local N = New("Frame", {Parent = gui, Size = UDim2.new(0, 300, 0, NOTIFY_HEIGHT), Position = UDim2.new(1, 320, 1, NOTIFY_BASE_Y), BackgroundColor3 = th.Element, BackgroundTransparency = 1})
     Corner(N, 6)
     local strk = Stroke(N, th.Stroke); strk.Transparency = 1
     local Ind = New("Frame", {Parent = N, Size = UDim2.new(0, 4, 1, -12), Position = UDim2.new(0, 6, 0, 6), BackgroundColor3 = th.Accent, BackgroundTransparency = 1})
@@ -722,9 +589,7 @@ function Library:Notify(title, content, duration, image)
     Tween(Ind, 0.25, {BackgroundTransparency = 0})
     Tween(TitleLbl, 0.25, {TextTransparency = 0})
     Tween(ContentLbl, 0.25, {TextTransparency = 0})
-    task.delay(duration, function()
-        RemoveNotification(item)
-    end)
+    task.delay(duration, function() RemoveNotification(item) end)
 end
 
 function Library:ChooseDialog(title, content, buttons)
@@ -732,36 +597,18 @@ function Library:ChooseDialog(title, content, buttons)
     content = content or ""
     local gui = CoreGui:FindFirstChild("UniversalGUI_Dialog")
     if gui then gui:Destroy() end
-    gui = New("ScreenGui", {
-        Name = "UniversalGUI_Dialog", Parent = CoreGui, ResetOnSpawn = false,
-        ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = Library.DisplayOrder + 10
-    })
+    gui = New("ScreenGui", {Name = "UniversalGUI_Dialog", Parent = CoreGui, ResetOnSpawn = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = Library.DisplayOrder + 10})
     local th = T()
-    local Overlay = New("TextButton", {
-        Parent = gui, Size = UDim2.new(1,0,1,0),
-        BackgroundColor3 = Color3.fromRGB(0,0,0),
-        BackgroundTransparency = 0.75, Text = "", AutoButtonColor = false, ZIndex = 100
-    })
-    Tween(Overlay, 0.25, {BackgroundTransparency = 0.75})
-
+    local Overlay = New("TextButton", {Parent = gui, Size = UDim2.new(1,0,1,0), BackgroundColor3 = Color3.fromRGB(0,0,0), BackgroundTransparency = 0.75, Text = "", AutoButtonColor = false, ZIndex = 100})
     local BOX_W = 440
     local BOX_H = 200
-
-    local Box = New("Frame", {
-        Parent = Overlay, AnchorPoint = Vector2.new(0.5,0.5),
-        Position = UDim2.new(0.5,0,0.5,0),
-        Size = UDim2.new(0, BOX_W, 0, BOX_H),
-        BackgroundColor3 = th.Background, BackgroundTransparency = 1, ZIndex = 101
-    })
+    local Box = New("Frame", {Parent = Overlay, AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.new(0.5,0,0.5,0), Size = UDim2.new(0, 0, 0, 0), BackgroundColor3 = th.Background, BackgroundTransparency = 1, ZIndex = 101})
     Corner(Box, 8)
     local strk = Stroke(Box, th.Stroke); strk.Transparency = 1
-    Box.Size = UDim2.new(0, 0, 0, 0)
     Tween(Box, 0.25, {Size = UDim2.new(0, BOX_W, 0, BOX_H), BackgroundTransparency = 0}, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
     Tween(strk, 0.25, {Transparency = 0})
-
     New("TextLabel", {Parent = Box, BackgroundTransparency = 1, Size = UDim2.new(1,-28,0,30), Position = UDim2.new(0,14,0,14), Font = Enum.Font.GothamBold, Text = title, TextColor3 = th.Text, TextSize = 16, TextXAlignment = Enum.TextXAlignment.Left})
     New("TextLabel", {Parent = Box, BackgroundTransparency = 1, Size = UDim2.new(1,-28,0,70), Position = UDim2.new(0,14,0,52), Font = Enum.Font.Gotham, Text = content, TextColor3 = th.SubText, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, TextWrapped = true})
-
     local function close()
         Tween(Box, 0.2, {Size = UDim2.new(0,0,0,0), BackgroundTransparency = 1})
         Tween(strk, 0.2, {Transparency = 1})
@@ -769,28 +616,17 @@ function Library:ChooseDialog(title, content, buttons)
         task.wait(0.22)
         SafeDestroy(gui)
     end
-
     buttons = buttons or {
         {Text = "Cancelar", Color = th.ElementActive, Callback = function() end},
         {Text = "Confirmar", Color = th.Accent, Callback = function() end},
     }
-
     local n = #buttons
     local bw = 120
     local gap = 12
     local totalW = n * bw + (n - 1) * gap
     local startX = (BOX_W - totalW) / 2
-
     for i, b in ipairs(buttons) do
-        local btn = New("TextButton", {
-            Parent = Box, AnchorPoint = Vector2.new(0,1),
-            Position = UDim2.new(0, startX + (i-1)*(bw+gap), 1, -16),
-            Size = UDim2.new(0, bw, 0, 38),
-            BackgroundColor3 = b.Color or th.ElementActive,
-            Text = b.Text or "OK", Font = Enum.Font.GothamBold,
-            TextColor3 = th.Text, TextSize = 13, AutoButtonColor = false,
-            ZIndex = 102
-        })
+        local btn = New("TextButton", {Parent = Box, AnchorPoint = Vector2.new(0,1), Position = UDim2.new(0, startX + (i-1)*(bw+gap), 1, -16), Size = UDim2.new(0, bw, 0, 38), BackgroundColor3 = b.Color or th.ElementActive, Text = b.Text or "OK", Font = Enum.Font.GothamBold, TextColor3 = th.Text, TextSize = 13, AutoButtonColor = false, ZIndex = 102})
         Corner(btn, 6)
         btn.MouseEnter:Connect(function()
             local base = b.Color or th.ElementActive
@@ -835,34 +671,13 @@ local function CreateToggleButton(lib, cfg)
     if draggable == nil then draggable = true end
     local hasIcon = icon ~= "" and icon ~= nil
     if not hasIcon and not text then text = "ABRIR" end
-    local gui = New("ScreenGui", {
-        Name = "UniversalGUI_Toggle_" .. (lib._libName or "x"), Parent = CoreGui,
-        ResetOnSpawn = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-        DisplayOrder = Library.DisplayOrder
-    })
-    local Btn = New("TextButton", {
-        Parent = gui, Name = "Toggle",
-        BackgroundColor3 = bgColor or T().Element,
-        BackgroundTransparency = bgColor and 0 or 0.15,
-        Position = pos, Size = size,
-        Font = Enum.Font.GothamBold,
-        Text = hasIcon and "" or (text or "ABRIR"),
-        TextColor3 = textColor or T().Text, TextSize = 14,
-        AutoButtonColor = false, Active = true
-    })
+    local gui = New("ScreenGui", {Name = "UniversalGUI_Toggle_" .. (lib._libName or "x"), Parent = CoreGui, ResetOnSpawn = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = Library.DisplayOrder})
+    local Btn = New("TextButton", {Parent = gui, Name = "Toggle", BackgroundColor3 = bgColor or T().Element, BackgroundTransparency = bgColor and 0 or 0.15, Position = pos, Size = size, Font = Enum.Font.GothamBold, Text = hasIcon and "" or (text or "ABRIR"), TextColor3 = textColor or T().Text, TextSize = 14, AutoButtonColor = false, Active = true})
     Corner(Btn, 8)
     local strk = Stroke(Btn, T().Stroke)
     local iconLbl
     if hasIcon then
-        iconLbl = New("ImageLabel", {
-            Parent = Btn, AnchorPoint = Vector2.new(0.5, 0.5),
-            Position = UDim2.new(0.5, 0, 0.5, 0),
-            Size = UDim2.new(0.65, 0, 0.65, 0),
-            BackgroundTransparency = 1,
-            Image = Library:GetIcon(icon),
-            ImageColor3 = iconColor or T().Accent,
-            ScaleType = Enum.ScaleType.Fit
-        })
+        iconLbl = New("ImageLabel", {Parent = Btn, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0.5, 0), Size = UDim2.new(0.65, 0, 0.65, 0), BackgroundTransparency = 1, Image = Library:GetIcon(icon), ImageColor3 = iconColor or T().Accent, ScaleType = Enum.ScaleType.Fit})
     end
     RegisterRerender(function()
         local theme = T()
@@ -877,13 +692,11 @@ local function CreateToggleButton(lib, cfg)
         local theme = T()
         if not bgColor then Tween(Btn, 0.15, {BackgroundColor3 = theme.ElementHover}) end
         Tween(strk, 0.15, {Color = theme.StrokeHover})
-        if not hasIcon and not textColor then Tween(Btn, 0.15, {TextColor3 = theme.Text}) end
     end)
     Btn.MouseLeave:Connect(function()
         local theme = T()
         if not bgColor then Tween(Btn, 0.15, {BackgroundColor3 = theme.Element}) end
         Tween(strk, 0.15, {Color = theme.Stroke})
-        if not hasIcon and not textColor then Tween(Btn, 0.15, {TextColor3 = theme.Text}) end
     end)
     Btn.MouseButton1Click:Connect(function() lib:ToggleUI() end)
     return gui
@@ -900,9 +713,7 @@ local function CreatePlayerCard(parent, cfg)
     local aStroke = Stroke(avatarFrame, T().Accent, 1.5)
     local avatar = New("ImageLabel", {Parent = avatarFrame, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0), Image = "", ScaleType = Enum.ScaleType.Fit})
     task.spawn(function()
-        local ok, thumb = pcall(function()
-            return Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
-        end)
+        local ok, thumb = pcall(function() return Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150) end)
         if ok and thumb and avatar and avatar.Parent then avatar.Image = thumb end
     end)
     local nameX = 14 + avatarSize + 10
@@ -928,7 +739,6 @@ local function ParseArgs(a, b, c, d, e, f)
         return {
             Title = t.Title or t.title or t.Name or t.name or "Untitled",
             Callback = t.Callback or t.CallBack or t.callback or t.Func or t.func or t.Function or function() end,
-            OnChange = t.OnChange or t.onChange or t.OnChanged,
             Flag = t.Flag or t.flag,
             Description = t.Description or t.description or t.Tooltip or t.tooltip or t.Tip or t.tip,
             Icon = t.Icon or t.icon,
@@ -946,13 +756,8 @@ local function ParseArgs(a, b, c, d, e, f)
         }
     end
     return {
-        Title = a or "Untitled",
-        Callback = b or function() end,
-        Flag = c,
-        Description = d,
-        Icon = nil,
-        Default = e,
-        Placeholder = f,
+        Title = a or "Untitled", Callback = b or function() end, Flag = c,
+        Description = d, Icon = nil, Default = e, Placeholder = f,
     }
 end
 
@@ -1005,10 +810,7 @@ function Library:CreateWindow(config)
     self._libName = LibName
     self._libNameBase = config.Name or "CID_UI"
 
-    local UILibrary = New("ScreenGui", {
-        Name = LibName, Parent = CoreGui, ResetOnSpawn = false,
-        ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = Library.DisplayOrder
-    })
+    local UILibrary = New("ScreenGui", {Name = LibName, Parent = CoreGui, ResetOnSpawn = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = Library.DisplayOrder})
     local th = T()
     local Main = New("Frame", {Parent = UILibrary, Name = "Main", AnchorPoint = Vector2.new(0.5, 0.5), BackgroundColor3 = th.Background, Position = UDim2.new(0.5, 0, 0.5, 0), Size = winSize, ClipsDescendants = false})
     Corner(Main, 8)
@@ -1030,27 +832,12 @@ function Library:CreateWindow(config)
     end
 
     local BtnHolderTop = New("Frame", {Parent = TopBar, AnchorPoint = Vector2.new(1,0.5), BackgroundTransparency = 1, Position = UDim2.new(1, -12, 0.5, 0), Size = UDim2.new(0, 74, 0, 32)})
-
-    local MinBtn = New("TextButton", {
-        Parent = BtnHolderTop, AnchorPoint = Vector2.new(1,0.5),
-        BackgroundColor3 = th.Element, BackgroundTransparency = 0.15,
-        Position = UDim2.new(1, -34, 0.5, 0), Size = UDim2.new(0, 30, 0, 30),
-        Text = "\226\136\146", Font = Enum.Font.GothamBold,
-        TextColor3 = th.SubText, TextSize = 22, AutoButtonColor = false
-    })
+    local MinBtn = New("TextButton", {Parent = BtnHolderTop, AnchorPoint = Vector2.new(1,0.5), BackgroundColor3 = th.Element, BackgroundTransparency = 0.15, Position = UDim2.new(1, -34, 0.5, 0), Size = UDim2.new(0, 30, 0, 30), Text = "\226\136\146", Font = Enum.Font.GothamBold, TextColor3 = th.SubText, TextSize = 22, AutoButtonColor = false})
     Corner(MinBtn, 6)
     local MinBtnStroke = Stroke(MinBtn, th.Stroke)
-
-    local Close = New("TextButton", {
-        Parent = BtnHolderTop, AnchorPoint = Vector2.new(1,0.5),
-        BackgroundColor3 = th.Element, BackgroundTransparency = 0.15,
-        Position = UDim2.new(1, 0, 0.5, 0), Size = UDim2.new(0, 30, 0, 30),
-        Text = "\195\151", Font = Enum.Font.GothamBold,
-        TextColor3 = th.SubText, TextSize = 18, AutoButtonColor = false
-    })
+    local Close = New("TextButton", {Parent = BtnHolderTop, AnchorPoint = Vector2.new(1,0.5), BackgroundColor3 = th.Element, BackgroundTransparency = 0.15, Position = UDim2.new(1, 0, 0.5, 0), Size = UDim2.new(0, 30, 0, 30), Text = "\195\151", Font = Enum.Font.GothamBold, TextColor3 = th.SubText, TextSize = 18, AutoButtonColor = false})
     Corner(Close, 6)
     local CloseStroke = Stroke(Close, th.Stroke)
-
     local TopLine = New("Frame", {Parent = TopBar, AnchorPoint = Vector2.new(0,1), BackgroundColor3 = th.Stroke, BorderSizePixel = 0, Position = UDim2.new(0,0,1,0), Size = UDim2.new(1,0,0,1)})
 
     RegisterRerender(function()
@@ -1105,7 +892,6 @@ function Library:CreateWindow(config)
         Tween(CloseStroke, 0.15, {Color = theme.Stroke})
         Tween(Close, 0.15, {TextColor3 = theme.SubText})
     end)
-
     MinBtn.MouseEnter:Connect(function()
         local theme = T()
         Tween(MinBtn, 0.15, {BackgroundColor3 = theme.ElementHover, BackgroundTransparency = 0})
@@ -1138,9 +924,8 @@ function Library:CreateWindow(config)
     local TabsFolder = New("Folder", {Parent = ContentContainer, Name = "TabsFolder"})
 
     RegisterRerender(function()
-        local theme = T()
-        Navigation.BackgroundColor3 = theme.Navigation
-        NavLine.BackgroundColor3 = theme.Stroke
+        Navigation.BackgroundColor3 = T().Navigation
+        NavLine.BackgroundColor3 = T().Stroke
     end)
 
     local ResizeHandle = New("TextButton", {Parent = Main, AnchorPoint = Vector2.new(1,1), BackgroundTransparency = 1, Position = UDim2.new(1, -2, 1, -2), Size = UDim2.new(0, 22, 0, 22), Text = "\194\177", Font = Enum.Font.GothamBold, TextColor3 = th.Stroke, TextSize = 20, AutoButtonColor = false})
@@ -1155,9 +940,7 @@ function Library:CreateWindow(config)
     local obCfg = config.OpenButton or {}
     if obCfg.Enabled ~= false then
         local toggleGui = CreateToggleButton(self, obCfg)
-        if toggleGui then
-            Library:AddCleanup(function() SafeDestroy(toggleGui) end, LibName)
-        end
+        if toggleGui then Library:AddCleanup(function() SafeDestroy(toggleGui) end, LibName) end
     end
 
     UserInputService.InputBegan:Connect(function(input, gpe)
@@ -1289,13 +1072,13 @@ function Library:CreateWindow(config)
             end)
         end
 
-        local function ElementIcon(parent, iconName)
+        local function ElementIcon(parent, iconName, centerY)
             if not iconName or iconName == "" then return nil, 12 end
+            local posY = centerY and UDim2.new(0, 14, 0, centerY) or UDim2.new(0, 14, 0.5, 0)
             local iconLbl = New("ImageLabel", {
-                Parent = parent,
-                AnchorPoint = Vector2.new(0, 0.5),
+                Parent = parent, AnchorPoint = Vector2.new(0, 0.5),
                 BackgroundTransparency = 1,
-                Position = UDim2.new(0, 14, 0.5, 0),
+                Position = posY,
                 Size = UDim2.new(0, 18, 0, 18),
                 Image = Library:GetIcon(iconName),
                 ImageColor3 = T().Text,
@@ -1310,9 +1093,23 @@ function Library:CreateWindow(config)
         function Elements:Section(title)
             title = title or "Section"
             local Section = New("Frame", {Parent = NewTab, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 22)})
-            local T1 = New("TextLabel", {Parent = Section, BackgroundTransparency = 1, Size = UDim2.new(0, 0, 0, 18), Position = UDim2.new(0, 4, 0, 2), Font = Enum.Font.GothamBold, Text = title, TextColor3 = T().SubText, TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, AutomaticSize = Enum.AutomaticSize.X})
-            local Line = New("Frame", {Parent = Section, BackgroundColor3 = T().Stroke, BorderSizePixel = 0, Position = UDim2.new(0, T1.TextBounds.X + 16, 0, 11), Size = UDim2.new(1, -(T1.TextBounds.X + 20), 0, 1)})
-            RegisterRerender(function() T1.TextColor3 = T().SubText; Line.BackgroundColor3 = T().Stroke end)
+            local T1 = New("TextLabel", {
+                Parent = Section, BackgroundTransparency = 1,
+                Size = UDim2.new(0, 0, 0, 18),
+                Position = UDim2.new(0.5, 0, 0, 2),
+                AnchorPoint = Vector2.new(0.5, 0),
+                Font = Enum.Font.GothamBold, Text = title,
+                TextColor3 = T().SubText, TextSize = 12,
+                TextXAlignment = Enum.TextXAlignment.Center,
+                AutomaticSize = Enum.AutomaticSize.X
+            })
+            local LineL = New("Frame", {Parent = Section, BackgroundColor3 = T().Stroke, BorderSizePixel = 0, Position = UDim2.new(0, 4, 0, 11), Size = UDim2.new(0.5, -(T1.TextBounds.X/2 + 12), 0, 1)})
+            local LineR = New("Frame", {Parent = Section, BackgroundColor3 = T().Stroke, BorderSizePixel = 0, Position = UDim2.new(0.5, T1.TextBounds.X/2 + 8, 0, 11), Size = UDim2.new(0.5, -(T1.TextBounds.X/2 + 12), 0, 1)})
+            RegisterRerender(function()
+                T1.TextColor3 = T().SubText
+                LineL.BackgroundColor3 = T().Stroke
+                LineR.BackgroundColor3 = T().Stroke
+            end)
             return Section
         end
 
@@ -1325,13 +1122,18 @@ function Library:CreateWindow(config)
 
         function Elements:Divider(text)
             local Div = New("Frame", {Parent = NewTab, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 20)})
-            local Line1 = New("Frame", {Parent = Div, BackgroundColor3 = T().Stroke, BorderSizePixel = 0, Position = UDim2.new(0, 4, 0.5, 0), Size = text and UDim2.new(0.4, -8, 0, 1) or UDim2.new(1, -8, 0, 1)})
             if text then
-                local lbl = New("TextLabel", {Parent = Div, BackgroundTransparency = 1, Position = UDim2.new(0.4, 0, 0, 0), Size = UDim2.new(0.2, 0, 1, 0), Font = Enum.Font.Gotham, Text = text, TextColor3 = T().SubText, TextSize = 11})
-                local Line2 = New("Frame", {Parent = Div, BackgroundColor3 = T().Stroke, BorderSizePixel = 0, Position = UDim2.new(0.6, 0, 0.5, 0), Size = UDim2.new(0.4, -8, 0, 1)})
-                RegisterRerender(function() Line1.BackgroundColor3 = T().Stroke; Line2.BackgroundColor3 = T().Stroke; lbl.TextColor3 = T().SubText end)
+                local T1 = New("TextLabel", {Parent = Div, BackgroundTransparency = 1, Size = UDim2.new(0, 0, 1, 0), Position = UDim2.new(0.5, 0, 0, 0), AnchorPoint = Vector2.new(0.5, 0), Font = Enum.Font.Gotham, Text = text, TextColor3 = T().SubText, TextSize = 11, TextXAlignment = Enum.TextXAlignment.Center, AutomaticSize = Enum.AutomaticSize.X})
+                local LineL = New("Frame", {Parent = Div, BackgroundColor3 = T().Stroke, BorderSizePixel = 0, Position = UDim2.new(0, 4, 0.5, 0), Size = UDim2.new(0.5, -(T1.TextBounds.X/2 + 12), 0, 1)})
+                local LineR = New("Frame", {Parent = Div, BackgroundColor3 = T().Stroke, BorderSizePixel = 0, Position = UDim2.new(0.5, T1.TextBounds.X/2 + 8, 0.5, 0), Size = UDim2.new(0.5, -(T1.TextBounds.X/2 + 12), 0, 1)})
+                RegisterRerender(function()
+                    T1.TextColor3 = T().SubText
+                    LineL.BackgroundColor3 = T().Stroke
+                    LineR.BackgroundColor3 = T().Stroke
+                end)
             else
-                RegisterRerender(function() Line1.BackgroundColor3 = T().Stroke end)
+                local Line = New("Frame", {Parent = Div, BackgroundColor3 = T().Stroke, BorderSizePixel = 0, Position = UDim2.new(0, 4, 0.5, 0), Size = UDim2.new(1, -8, 0, 1)})
+                RegisterRerender(function() Line.BackgroundColor3 = T().Stroke end)
             end
             return Div
         end
@@ -1346,11 +1148,7 @@ function Library:CreateWindow(config)
             Corner(Button, 5)
             local stroke = Stroke(Button, T().Stroke)
             local iconLbl, textX
-            if hasIcon then
-                iconLbl, textX = ElementIcon(Button, icon)
-            else
-                textX = 12
-            end
+            if hasIcon then iconLbl, textX = ElementIcon(Button, icon) else textX = 12 end
             local lbl
             if hasDesc then
                 lbl = New("TextLabel", {Parent = Button, BackgroundTransparency = 1, Size = UDim2.new(1, -(textX + 34), 0, 18), Position = UDim2.new(0, textX, 0, 9), Font = Enum.Font.Gotham, Text = name, TextColor3 = T().Text, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top})
@@ -1426,11 +1224,7 @@ function Library:CreateWindow(config)
             Corner(Toggle, 5)
             local stroke = Stroke(Toggle, T().Stroke)
             local iconLbl, textX
-            if hasIcon then
-                iconLbl, textX = ElementIcon(Toggle, icon)
-            else
-                textX = 12
-            end
+            if hasIcon then iconLbl, textX = ElementIcon(Toggle, icon) else textX = 12 end
             local lbl = New("TextLabel", {Parent = Toggle, BackgroundTransparency = 1, Size = UDim2.new(1, -(textX + 50), 1, 0), Position = UDim2.new(0, textX, 0, 0), Font = Enum.Font.Gotham, Text = name, TextColor3 = T().Text, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left})
             local Holder = New("Frame", {Parent = Toggle, AnchorPoint = Vector2.new(1,0.5), BackgroundColor3 = T().ToggleOff, Position = UDim2.new(1, -12, 0.5, 0), Size = UDim2.new(0, 24, 0, 24)})
             Corner(Holder, 6)
@@ -1442,6 +1236,7 @@ function Library:CreateWindow(config)
                 stroke.Color = theme.Stroke
                 lbl.TextColor3 = theme.Text
                 Checkmark.ImageColor3 = theme.Text
+                if iconLbl then iconLbl.ImageColor3 = theme.Text end
                 if toggled then Holder.BackgroundColor3 = theme.Accent; stroke2.Color = theme.AccentStroke
                 else Holder.BackgroundColor3 = theme.ToggleOff; stroke2.Color = theme.Stroke end
             end)
@@ -1484,11 +1279,7 @@ function Library:CreateWindow(config)
             Corner(Slider, 5)
             local sStroke = Stroke(Slider, T().Stroke)
             local iconLbl, textX
-            if hasIcon then
-                iconLbl, textX = ElementIcon(Slider, icon)
-            else
-                textX = 12
-            end
+            if hasIcon then iconLbl, textX = ElementIcon(Slider, icon, 16) else textX = 12 end
             local lbl = New("TextLabel", {Parent = Slider, BackgroundTransparency = 1, Size = UDim2.new(1, -(textX + 60), 0, 20), Position = UDim2.new(0, textX, 0, 6), Font = Enum.Font.Gotham, Text = name, TextColor3 = T().Text, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left})
             local ValueLbl = New("TextLabel", {Parent = Slider, AnchorPoint = Vector2.new(1,0), BackgroundTransparency = 1, Position = UDim2.new(1, -12, 0, 6), Size = UDim2.new(0, 60, 0, 20), Font = Enum.Font.Gotham, Text = tostring(value), TextColor3 = T().SubText, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Right})
             local Track = New("Frame", {Parent = Slider, AnchorPoint = Vector2.new(0,1), BackgroundColor3 = T().SliderTrack, Position = UDim2.new(0, 12, 1, -12), Size = UDim2.new(1, -24, 0, 16)})
@@ -1569,11 +1360,7 @@ function Library:CreateWindow(config)
             Corner(Frame, 5)
             local fStroke = Stroke(Frame, T().Stroke)
             local iconLbl, textX
-            if hasIcon then
-                iconLbl, textX = ElementIcon(Frame, icon)
-            else
-                textX = 12
-            end
+            if hasIcon then iconLbl, textX = ElementIcon(Frame, icon) else textX = 12 end
             local lbl = New("TextLabel", {Parent = Frame, BackgroundTransparency = 1, Size = UDim2.new(1, -(textX + 120), 1, 0), Position = UDim2.new(0, textX, 0, 0), Font = Enum.Font.Gotham, Text = name, TextColor3 = T().Text, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left})
             local Input = New("TextBox", {Parent = Frame, AnchorPoint = Vector2.new(1,0.5), BackgroundColor3 = T().TextBox, BorderSizePixel = 0, Position = UDim2.new(1, -8, 0.5, 0), Size = UDim2.new(0, 120, 0, 26), Font = Enum.Font.Gotham, PlaceholderText = placeholder or "Escribir...", Text = "", TextColor3 = T().Text, TextSize = 12, ClearTextOnFocus = false})
             Corner(Input, 4)
@@ -1614,11 +1401,7 @@ function Library:CreateWindow(config)
             Corner(KB, 5)
             local stroke = Stroke(KB, T().Stroke)
             local iconLbl, textX
-            if hasIcon then
-                iconLbl, textX = ElementIcon(KB, icon)
-            else
-                textX = 12
-            end
+            if hasIcon then iconLbl, textX = ElementIcon(KB, icon) else textX = 12 end
             local lbl = New("TextLabel", {Parent = KB, BackgroundTransparency = 1, Size = UDim2.new(1, -(textX + 60), 1, 0), Position = UDim2.new(0, textX, 0, 0), Font = Enum.Font.Gotham, Text = name, TextColor3 = T().Text, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left})
             local KeyBox = New("Frame", {Parent = KB, AnchorPoint = Vector2.new(1,0.5), BackgroundColor3 = T().KeyBox, Position = UDim2.new(1, -12, 0.5, 0), Size = UDim2.new(0, 48, 0, 24)})
             Corner(KeyBox, 4)
@@ -1674,11 +1457,7 @@ function Library:CreateWindow(config)
             local stroke = Stroke(Dropdown, T().Stroke)
             local Header = New("TextButton", {Parent = Dropdown, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 38), AutoButtonColor = false, Text = ""})
             local iconLbl, textX
-            if hasIcon then
-                iconLbl, textX = ElementIcon(Header, icon)
-            else
-                textX = 12
-            end
+            if hasIcon then iconLbl, textX = ElementIcon(Header, icon) else textX = 12 end
             local lbl = New("TextLabel", {Parent = Header, BackgroundTransparency = 1, Size = UDim2.new(1, -(textX + 70), 1, 0), Position = UDim2.new(0, textX, 0, 0), Font = Enum.Font.Gotham, Text = name, TextColor3 = T().Text, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left})
             local CurrentLbl = New("TextLabel", {Parent = Header, AnchorPoint = Vector2.new(1,0.5), BackgroundTransparency = 1, Position = UDim2.new(1, -34, 0.5, 0), Size = UDim2.new(0, 100, 0, 20), Font = Enum.Font.Gotham, Text = tostring(selected), TextColor3 = T().SubText, TextSize = 12, TextXAlignment = Enum.TextXAlignment.Right})
             local Sign = New("TextLabel", {Parent = Header, AnchorPoint = Vector2.new(1,0.5), BackgroundTransparency = 1, Position = UDim2.new(1, -14, 0.5, 0), Size = UDim2.new(0, 20, 0, 20), Font = Enum.Font.GothamBold, Text = "+", TextColor3 = T().SubText, TextSize = 20, TextXAlignment = Enum.TextXAlignment.Center})
@@ -1749,11 +1528,7 @@ function Library:CreateWindow(config)
             local stroke = Stroke(Multi, T().Stroke)
             local Header = New("TextButton", {Parent = Multi, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 38), AutoButtonColor = false, Text = ""})
             local iconLbl, textX
-            if hasIcon then
-                iconLbl, textX = ElementIcon(Header, icon)
-            else
-                textX = 12
-            end
+            if hasIcon then iconLbl, textX = ElementIcon(Header, icon) else textX = 12 end
             local lbl = New("TextLabel", {Parent = Header, BackgroundTransparency = 1, Size = UDim2.new(1, -(textX + 90), 1, 0), Position = UDim2.new(0, textX, 0, 0), Font = Enum.Font.Gotham, Text = name, TextColor3 = T().Text, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left})
             local CountLbl = New("TextLabel", {Parent = Header, AnchorPoint = Vector2.new(1,0.5), BackgroundTransparency = 1, Position = UDim2.new(1, -34, 0.5, 0), Size = UDim2.new(0, 100, 0, 20), Font = Enum.Font.Gotham, Text = "0 selec.", TextColor3 = T().SubText, TextSize = 11, TextXAlignment = Enum.TextXAlignment.Right})
             local Sign = New("TextLabel", {Parent = Header, AnchorPoint = Vector2.new(1,0.5), BackgroundTransparency = 1, Position = UDim2.new(1, -14, 0.5, 0), Size = UDim2.new(0, 20, 0, 20), Font = Enum.Font.GothamBold, Text = "+", TextColor3 = T().SubText, TextSize = 20, TextXAlignment = Enum.TextXAlignment.Center})
@@ -1835,11 +1610,7 @@ function Library:CreateWindow(config)
             Corner(Picker, 5)
             local pStroke = Stroke(Picker, T().Stroke)
             local iconLbl, textX
-            if hasIcon then
-                iconLbl, textX = ElementIcon(Picker, icon)
-            else
-                textX = 12
-            end
+            if hasIcon then iconLbl, textX = ElementIcon(Picker, icon, 28) else textX = 12 end
             local lbl = New("TextLabel", {Parent = Picker, BackgroundTransparency = 1, Size = UDim2.new(1, -(textX + 50), 0, 20), Position = UDim2.new(0, textX, 0, 18), Font = Enum.Font.Gotham, Text = name, TextColor3 = T().Text, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left})
             local Preview = New("Frame", {Parent = Picker, AnchorPoint = Vector2.new(1,0), BackgroundColor3 = color, Position = UDim2.new(1, -12, 0, 18), Size = UDim2.new(0, 30, 0, 20)})
             Corner(Preview, 4)
@@ -1867,7 +1638,7 @@ function Library:CreateWindow(config)
                 if iconLbl then iconLbl.ImageColor3 = theme.Text end
                 for _, tr in ipairs(tracks) do tr.track.BackgroundColor3 = theme.SliderTrack; tr.knob.BackgroundColor3 = theme.Text; tr.stroke.Color = theme.StrokeHover end
             end)
-            local function updateColor()
+            local function visualUpdate()
                 color = Color3.fromHSV(h, s, v)
                 Preview.BackgroundColor3 = color
                 hK.Position = UDim2.new(h, 0, 0.5, 0)
@@ -1875,28 +1646,53 @@ function Library:CreateWindow(config)
                 vK.Position = UDim2.new(v, 0, 0.5, 0)
                 local sg = sT:FindFirstChildOfClass("UIGradient"); if sg then sg.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromHSV(h,0,1)), ColorSequenceKeypoint.new(1, Color3.fromHSV(h,1,1))} end
                 local vg = vT:FindFirstChildOfClass("UIGradient"); if vg then vg.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(0,0,0)), ColorSequenceKeypoint.new(1, Color3.fromHSV(h,s,1))} end
+            end
+            local function commit()
                 if flag then Library.Flags[flag] = color end
                 pcall(callback, color)
             end
             local function bind(track, setter)
                 local dragging = false
                 track.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = true; local rel = math.clamp((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1); setter(rel); updateColor() end
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                        dragging = true
+                        local rel = math.clamp((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
+                        setter(rel)
+                        visualUpdate()
+                    end
                 end)
                 UserInputService.InputChanged:Connect(function(input)
-                    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then local rel = math.clamp((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1); setter(rel); updateColor() end
+                    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                        local rel = math.clamp((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
+                        setter(rel)
+                        visualUpdate()
+                    end
                 end)
                 UserInputService.InputEnded:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                        if dragging then
+                            dragging = false
+                            commit()
+                        end
+                    end
                 end)
             end
-            bind(hT, function(r) h = r end); bind(sT, function(r) s = r end); bind(vT, function(r) v = r end)
-            updateColor()
+            bind(hT, function(r) h = r end)
+            bind(sT, function(r) s = r end)
+            bind(vT, function(r) v = r end)
+            visualUpdate()
             AttachTooltip(lbl, tooltip)
             local obj = {}
-            function obj:Set(c) color = c; h, s, v = Color3.toHSV(c); updateColor() end
+            function obj:Set(c, fire)
+                color = c
+                h, s, v = Color3.toHSV(c)
+                visualUpdate()
+                if flag then Library.Flags[flag] = color end
+                if fire == true then pcall(callback, color) end
+            end
             function obj:Get() return color end
-            if flag then Library.Flags[flag] = color; Library.Options[flag] = obj end
+            obj:Set(default, false)
+            if flag then Library.Options[flag] = obj end
             return obj
         end
 
