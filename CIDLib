@@ -1,6 +1,46 @@
 local Library = {
     Name = "CID UI",
-    Version = "2.5.1",
+    Version = "2.5.2",
+    Icons = {
+        Home     = "rbxassetid://6031075931",
+        Settings = "rbxassetid://6031280882",
+        Config   = "rbxassetid://6031280882",
+        Player   = "rbxassetid://6031265976",
+        User     = "rbxassetid://6031265976",
+        Users    = "rbxassetid://6031265976",
+        Combat   = "rbxassetid://6031094667",
+        Sword    = "rbxassetid://6031094667",
+        Shield   = "rbxassetid://6031227247",
+        Star     = "rbxassetid://6031091004",
+        Heart    = "rbxassetid://6031091004",
+        Search   = "rbxassetid://6031154871",
+        Trash    = "rbxassetid://6031090990",
+        Close    = "rbxassetid://6031090990",
+        Bolt     = "rbxassetid://6031075921",
+        Speed    = "rbxassetid://6031075921",
+        Check    = "rbxassetid://6031075905",
+        Info     = "rbxassetid://6031154871",
+        Warning  = "rbxassetid://6031227247",
+        Map      = "rbxassetid://6031265976",
+        Camera   = "rbxassetid://6031075931",
+        Server   = "rbxassetid://6031265976",
+        Misc     = "rbxassetid://6031280882",
+        Sparkle  = "rbxassetid://6031091004",
+        Gift     = "rbxassetid://6031227247",
+        Crown    = "rbxassetid://6031091004",
+        Lock     = "rbxassetid://6031227247",
+        Eye      = "rbxassetid://6031154871",
+        Fire     = "rbxassetid://6031075921",
+        Target   = "rbxassetid://6031265976",
+        Diamond  = "rbxassetid://6031091004",
+        Flash    = "rbxassetid://6031075921",
+        Clock    = "rbxassetid://6031280882",
+        Folder   = "rbxassetid://6031265976",
+        Teleport = "rbxassetid://6031265976",
+        Anti     = "rbxassetid://6031227247",
+        GodMode  = "rbxassetid://6031227247",
+        ESP      = "rbxassetid://6031154871"
+    },
     _Windows = {},
     _Themes = {},
     _ActiveTheme = "Dark",
@@ -111,6 +151,16 @@ local PresetThemes = {
         StrokeTransparency = .38
     }
 }
+
+local function resolveIcon(icon)
+    if type(icon) ~= "string" then return icon end
+    if icon == "" then return icon end
+    if icon:match("^rbxassetid://") then return icon end
+    if icon:match("^rbxasset://") then return icon end
+    if icon:match("^https?://") then return icon end
+    if icon:match("^%d+$") then return "rbxassetid://" .. icon end
+    return Library.Icons[icon] or icon
+end
 
 local function copyTheme(source)
     local r = {}
@@ -1362,6 +1412,7 @@ function Library:CreateWindow(config)
         if type(tabConfig) == "string" then tabConfig = {Name = tabConfig}
         else tabConfig = safe(tabConfig) end
 
+        tabConfig.Icon = resolveIcon(tabConfig.Icon)
         local hasIcon = type(tabConfig.Icon) == "string" and #tabConfig.Icon > 0
 
         local button = Instance.new("TextButton")
@@ -2400,6 +2451,8 @@ function Library:CreateWindow(config)
                 options = safe(optionsOrUrl)
             end
 
+            options.Image = resolveIcon(options.Image)
+
             local frame = Instance.new("Frame")
             frame.Size = UDim2.new(1, 0, 0, options.Height or 120)
             frame.BackgroundColor3 = windowTheme.Panel
@@ -2425,7 +2478,7 @@ function Library:CreateWindow(config)
             return {
                 Frame = frame,
                 Image = image,
-                Set = function(_, id) image.Image = tostring(id or "") end,
+                Set = function(_, id) image.Image = resolveIcon(id) or "" end,
                 Get = function() return image.Image end
             }
         end
@@ -2842,6 +2895,33 @@ end
 function Library:GetName() return self.Name end
 function Library:GetVersion() return self.Version end
 function Library:GetInstanceName() return self._InstanceName or "CID_UI" end
+
+function Library:RegisterIcon(name, id)
+    if type(name) ~= "string" or type(id) ~= "string" then return false end
+    self.Icons[name] = id
+    return true
+end
+
+function Library:RegisterIcons(tbl)
+    if type(tbl) ~= "table" then return false end
+    for k, v in pairs(tbl) do
+        if type(k) == "string" and type(v) == "string" then
+            self.Icons[k] = v
+        end
+    end
+    return true
+end
+
+function Library:GetIcon(name)
+    return self.Icons[name]
+end
+
+function Library:GetIcons()
+    local list = {}
+    for k in pairs(self.Icons) do table.insert(list, k) end
+    table.sort(list)
+    return list
+end
 
 function Library:SetInstanceName(name)
     if self._InstanceName then return false end
