@@ -1,6 +1,6 @@
 local Library = {
     Name = "CID UI",
-    Version = "2.4.5",
+    Version = "2.5.0",
     _Windows = {},
     _Themes = {},
     _ActiveTheme = "Dark",
@@ -245,10 +245,16 @@ local function applyThemeRole(object, role, theme)
         return
     end
 
+    if object:IsA("ImageLabel") and role == "Icon" then
+        object.ImageColor3 = theme.Sub
+        return
+    end
+
     if object:IsA("TextLabel") or object:IsA("TextButton") or object:IsA("TextBox") then
         if role == "Text" then object.TextColor3 = theme.Text
         elseif role == "Sub" then object.TextColor3 = theme.Sub
         elseif role == "AccentText" then object.TextColor3 = theme.AccentText
+        elseif role == "Accent" and object:IsA("TextButton") then object.TextColor3 = theme.Accent
         elseif role == "DialogPrimary" and object:IsA("TextButton") then object.TextColor3 = theme.AccentText
         elseif role == "DialogButton" and object:IsA("TextButton") then object.TextColor3 = theme.Text
         end
@@ -1143,6 +1149,9 @@ function Library:CreateWindow(config)
             item._Button.BackgroundTransparency = selected and 0 or 0.35
             item._Button.TextColor3 = selected and windowTheme.Accent or windowTheme.Sub
             item._Button.Font = selected and Font.Title or Font.Medium
+            if item._Icon then
+                item._Icon.ImageColor3 = selected and windowTheme.Accent or windowTheme.Sub
+            end
             if item.Stroke then
                 item.Stroke.Color = selected and windowTheme.Accent or windowTheme.Stroke
                 item.Stroke.Transparency = selected and .35 or .85
@@ -1349,22 +1358,41 @@ function Library:CreateWindow(config)
         if type(tabConfig) == "string" then tabConfig = {Name = tabConfig}
         else tabConfig = safe(tabConfig) end
 
+        local hasIcon = type(tabConfig.Icon) == "string" and #tabConfig.Icon > 0
+
         local button = Instance.new("TextButton")
         button.Size = UDim2.new(1, -8, 0, 40)
         button.BackgroundColor3 = windowTheme.Button
         button.BackgroundTransparency = 0.35
         button.BorderSizePixel = 0
-        button.Text = tostring(tabConfig.Name or "Tab")
-        button.Font = Font.Medium
-        button.TextSize = 13
-        button.TextColor3 = windowTheme.Sub
-        button.TextXAlignment = Enum.TextXAlignment.Left
+        button.Text = ""
         button.AutoButtonColor = false
         button.Parent = tabList
         themeRole(button, "Button")
         corner(button, 8)
         local tabStroke = stroke(button, windowTheme.Stroke, .85)
-        padding(button, 16, 8, 0, 0)
+
+        local tabIcon
+        local textStartX = 16
+
+        if hasIcon then
+            tabIcon = Instance.new("ImageLabel")
+            tabIcon.Name = "CIDTabIcon"
+            tabIcon.BackgroundTransparency = 1
+            tabIcon.Position = UDim2.fromOffset(14, 12)
+            tabIcon.Size = UDim2.fromOffset(16, 16)
+            tabIcon.Image = tabConfig.Icon
+            tabIcon.ImageColor3 = windowTheme.Sub
+            tabIcon.ScaleType = Enum.ScaleType.Fit
+            tabIcon.ZIndex = 2
+            tabIcon.Parent = button
+            themeRole(tabIcon, "Icon")
+            textStartX = 38
+        end
+
+        local tabText = label(button, tostring(tabConfig.Name or "Tab"),
+            UDim2.fromOffset(textStartX, 0), UDim2.new(1, -textStartX - 8, 1, 0),
+            Font.Medium, 13, windowTheme.Sub, "Sub")
 
         local page = Instance.new("ScrollingFrame")
         page.Size = UDim2.fromScale(1, 1)
@@ -1391,6 +1419,8 @@ function Library:CreateWindow(config)
             Window = window,
             Name = tostring(tabConfig.Name or "Tab"),
             _Button = button,
+            _Icon = tabIcon,
+            _Text = tabText,
             Stroke = tabStroke,
             Page = page,
             Layout = layout
@@ -1409,6 +1439,10 @@ function Library:CreateWindow(config)
                     BackgroundColor3 = windowTheme.Hover,
                     BackgroundTransparency = 0.2
                 }):Play()
+                tabText.TextColor3 = windowTheme.Text
+                if tabIcon then
+                    tween(tabIcon, .15, { ImageColor3 = windowTheme.Text }):Play()
+                end
             end
         end)
         connect(button.MouseLeave, function()
@@ -1417,6 +1451,10 @@ function Library:CreateWindow(config)
                     BackgroundColor3 = windowTheme.Button,
                     BackgroundTransparency = 0.35
                 }):Play()
+                tabText.TextColor3 = windowTheme.Sub
+                if tabIcon then
+                    tween(tabIcon, .15, { ImageColor3 = windowTheme.Sub }):Play()
+                end
             end
         end)
 
@@ -2350,6 +2388,44 @@ function Library:CreateWindow(config)
             return divider
         end
 
+        function tab:Image(optionsOrUrl, size)
+            local options
+            if type(optionsOrUrl) == "string" then
+                options = { Image = optionsOrUrl, Size = size }
+            else
+                options = safe(optionsOrUrl)
+            end
+
+            local frame = Instance.new("Frame")
+            frame.Size = UDim2.new(1, 0, 0, options.Height or 120)
+            frame.BackgroundColor3 = windowTheme.Panel
+            frame.BorderSizePixel = 0
+            frame.ClipsDescendants = true
+            addItem(frame)
+            frame.Parent = page
+            themeRole(frame, "Panel")
+            corner(frame, 9)
+            stroke(frame, windowTheme.Stroke, .35)
+
+            local image = Instance.new("ImageLabel")
+            image.BackgroundTransparency = 1
+            image.Image = options.Image or ""
+            image.ImageColor3 = options.ImageColor or Color3.fromRGB(255, 255, 255)
+            image.ImageTransparency = tonumber(options.Transparency) or 0
+            image.ScaleType = Enum.ScaleType.Fit
+            image.Position = UDim2.fromOffset(options.Padding or 10, options.Padding or 10)
+            image.Size = UDim2.new(1, -(options.Padding or 10) * 2, 1, -(options.Padding or 10) * 2)
+            image.ZIndex = 2
+            image.Parent = frame
+
+            return {
+                Frame = frame,
+                Image = image,
+                Set = function(_, id) image.Image = tostring(id or "") end,
+                Get = function() return image.Image end
+            }
+        end
+
         tab.CreateButton = tab.Button
         tab.CreateToggle = tab.Toggle
         tab.CreateDropdown = tab.Dropdown
@@ -2361,12 +2437,12 @@ function Library:CreateWindow(config)
         tab.CreateLabel = tab.Label
         tab.CreateParagraph = tab.Paragraph
         tab.CreateDivider = tab.Divider
+        tab.CreateImage = tab.Image
 
         return tab
     end
 
-    window.CreateTab = function(self, cfg) return self:CreateTab(cfg) end
-    window.Tab = window.CreateTab
+    window.Tab = function(self, cfg) return self:CreateTab(cfg) end
 
     function window:Dialog(options)
         options = safe(options)
@@ -2646,6 +2722,11 @@ function Library:CreateWindow(config)
             end
             if openButtonStroke then
                 openButtonStroke.Color = theme.Accent
+            end
+        end
+        for _, t in ipairs(window.Tabs) do
+            if t._Icon then
+                t._Icon.ImageColor3 = (window.SelectedTab == t) and theme.Accent or theme.Sub
             end
         end
         if window.SelectedTab then selectTab(window.SelectedTab) end
