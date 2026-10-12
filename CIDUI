@@ -1,5 +1,3 @@
--- LIBRARY CID API
-
 local Library = {}
 
 Library.Icons = {
@@ -310,7 +308,7 @@ Library.Options = {}
 Library.Cleanups = {}
 Library.ToggleKey = Enum.KeyCode.RightShift
 Library.Open = true
-Library.Version = "1.0.0"
+Library.Version = "7.1.0"
 Library.DisplayOrder = 999999
 Library._currentTheme = "Dark"
 Library._rerenders = {}
@@ -1289,21 +1287,18 @@ function Library:CreateWindow(config)
             end)
         end
 
-        local function ElementIcon(parent, iconName, customY)
+        local function ElementIcon(parent, iconName)
             if not iconName or iconName == "" then return nil, 12 end
             local iconLbl = New("ImageLabel", {
-                Parent = parent, AnchorPoint = Vector2.new(0, 0.5),
+                Parent = parent,
+                AnchorPoint = Vector2.new(0, 0.5),
                 BackgroundTransparency = 1,
-                Position = UDim2.new(0, 14, 0, customY or 0.5),
+                Position = UDim2.new(0, 14, 0.5, 0),
                 Size = UDim2.new(0, 18, 0, 18),
                 Image = Library:GetIcon(iconName),
                 ImageColor3 = T().Text,
                 ScaleType = Enum.ScaleType.Fit
             })
-            if customY then
-                iconLbl.AnchorPoint = Vector2.new(0, 0)
-                iconLbl.Position = UDim2.new(0, 14, 0, customY)
-            end
             RegisterRerender(function()
                 if iconLbl and iconLbl.Parent then iconLbl.ImageColor3 = T().Text end
             end)
@@ -1481,7 +1476,6 @@ function Library:CreateWindow(config)
             else o = {Title = arg1 or "Slider", Min = arg2 or 0, Max = arg3 or 100, Callback = arg4 or function() end, Flag = arg5, Default = arg6, Description = arg7} end
             local name, callback, flag, default, tooltip, icon = o.Title, o.Callback, o.Flag, o.Default, o.Description, o.Icon
             local minv, maxv = o.Min, o.Max
-            local onChange = o.OnChange
             local value = math.clamp(default or minv, minv, maxv)
             local hasIcon = icon and icon ~= ""
             local Slider = New("Frame", {Parent = NewTab, BackgroundColor3 = T().Element, Size = UDim2.new(1, 0, 0, 56)})
@@ -1489,7 +1483,7 @@ function Library:CreateWindow(config)
             local sStroke = Stroke(Slider, T().Stroke)
             local iconLbl, textX
             if hasIcon then
-                iconLbl, textX = ElementIcon(Slider, icon, 15)
+                iconLbl, textX = ElementIcon(Slider, icon)
             else
                 textX = 12
             end
@@ -1514,37 +1508,37 @@ function Library:CreateWindow(config)
                 Fill.BackgroundColor3 = theme.Accent
                 Knob.BackgroundColor3 = theme.Text
                 kStroke.Color = theme.StrokeHover
+                if iconLbl then iconLbl.ImageColor3 = theme.Text end
             end)
             local dragging = false
-            local function updateFromX(x, fireRelease)
+            local function visualUpdate(x)
                 local rel = math.clamp((x - Track.AbsolutePosition.X) / Track.AbsoluteSize.X, 0, 1)
                 value = math.floor((minv + (maxv - minv) * rel) * 100 + 0.5) / 100
                 Fill.Size = UDim2.new(rel, 0, 1, 0)
                 Knob.Position = UDim2.new(rel, 0, 0.5, 0)
                 ValueLbl.Text = tostring(value)
+            end
+            local function commit()
                 if flag then Library.Flags[flag] = value end
-                if fireRelease then
-                    pcall(callback, value)
-                elseif onChange then
-                    pcall(onChange, value)
-                end
+                pcall(callback, value)
             end
             Track.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     dragging = true
-                    updateFromX(input.Position.X, false)
+                    visualUpdate(input.Position.X)
                 end
             end)
             UserInputService.InputChanged:Connect(function(input)
                 if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-                    updateFromX(input.Position.X, false)
+                    visualUpdate(input.Position.X)
                 end
             end)
             UserInputService.InputEnded:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     if dragging then
                         dragging = false
-                        updateFromX(input.Position.X, true)
+                        visualUpdate(input.Position.X)
+                        commit()
                     end
                 end
             end)
@@ -1557,7 +1551,7 @@ function Library:CreateWindow(config)
                 Knob.Position = UDim2.new(rel, 0, 0.5, 0)
                 ValueLbl.Text = tostring(value)
                 if flag then Library.Flags[flag] = value end
-                if fire ~= false then pcall(callback, value) end
+                if fire == true then pcall(callback, value) end
             end
             function obj:Get() return value end
             obj:Set(value, false)
@@ -1840,12 +1834,12 @@ function Library:CreateWindow(config)
             local pStroke = Stroke(Picker, T().Stroke)
             local iconLbl, textX
             if hasIcon then
-                iconLbl, textX = ElementIcon(Picker, icon, 18)
+                iconLbl, textX = ElementIcon(Picker, icon)
             else
                 textX = 12
             end
-            local lbl = New("TextLabel", {Parent = Picker, BackgroundTransparency = 1, Size = UDim2.new(1, -(textX + 50), 0, 20), Position = UDim2.new(0, textX, 0, 8), Font = Enum.Font.Gotham, Text = name, TextColor3 = T().Text, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left})
-            local Preview = New("Frame", {Parent = Picker, AnchorPoint = Vector2.new(1,0), BackgroundColor3 = color, Position = UDim2.new(1, -12, 0, 8), Size = UDim2.new(0, 30, 0, 20)})
+            local lbl = New("TextLabel", {Parent = Picker, BackgroundTransparency = 1, Size = UDim2.new(1, -(textX + 50), 0, 20), Position = UDim2.new(0, textX, 0, 18), Font = Enum.Font.Gotham, Text = name, TextColor3 = T().Text, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left})
+            local Preview = New("Frame", {Parent = Picker, AnchorPoint = Vector2.new(1,0), BackgroundColor3 = color, Position = UDim2.new(1, -12, 0, 18), Size = UDim2.new(0, 30, 0, 20)})
             Corner(Preview, 4)
             local pvStroke = Stroke(Preview, T().Stroke)
             local tracks = {}
@@ -1859,9 +1853,9 @@ function Library:CreateWindow(config)
                 table.insert(tracks, {track = track, knob = knob, stroke = ks})
                 return track, knob
             end
-            local hT, hK = makeTrack(36, ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255,0,0)), ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255,255,0)), ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0,255,0)), ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0,255,255)), ColorSequenceKeypoint.new(0.67, Color3.fromRGB(0,0,255)), ColorSequenceKeypoint.new(0.83, Color3.fromRGB(255,0,255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255,0,0))})
-            local sT, sK = makeTrack(58, ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromHSV(h,0,1)), ColorSequenceKeypoint.new(1, Color3.fromHSV(h,1,1))})
-            local vT, vK = makeTrack(80, ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(0,0,0)), ColorSequenceKeypoint.new(1, Color3.fromHSV(h,s,1))})
+            local hT, hK = makeTrack(46, ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255,0,0)), ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255,255,0)), ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0,255,0)), ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0,255,255)), ColorSequenceKeypoint.new(0.67, Color3.fromRGB(0,0,255)), ColorSequenceKeypoint.new(0.83, Color3.fromRGB(255,0,255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255,0,0))})
+            local sT, sK = makeTrack(68, ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromHSV(h,0,1)), ColorSequenceKeypoint.new(1, Color3.fromHSV(h,1,1))})
+            local vT, vK = makeTrack(90, ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(0,0,0)), ColorSequenceKeypoint.new(1, Color3.fromHSV(h,s,1))})
             RegisterRerender(function()
                 local theme = T()
                 Picker.BackgroundColor3 = theme.Element
