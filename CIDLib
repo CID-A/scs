@@ -1,6 +1,6 @@
 local Library = {
     Name = "CID UI",
-    Version = "2.3.5",
+    Version = "2.4.0",
     _Windows = {},
     _Themes = {},
     _ActiveTheme = "Dark",
@@ -650,7 +650,7 @@ function Library:Notify(options, content, duration)
     dismiss.Parent = notification
     themeRole(dismiss, "Sub")
 
-    local titleLabel = label(notification, options.Title or "CID UI",
+    label(notification, options.Title or "CID UI",
         UDim2.fromOffset(16, 12), UDim2.new(1, -50, 0, 20),
         Font.Title, 13, Library.Theme.Text, "Text")
 
@@ -686,7 +686,8 @@ function Library:Notify(options, content, duration)
     end
 
     dismiss.MouseButton1Click:Connect(remove)
-    task.delay(tonumber(options.Duration) or 4, remove)
+    local waitTime = tonumber(options.Wait) or tonumber(options.Duration) or 4
+    task.delay(waitTime, remove)
 
     return notification
 end
@@ -1138,19 +1139,13 @@ function Library:CreateWindow(config)
         for _, item in ipairs(window.Tabs) do
             local selected = item == tab
             item.Page.Visible = selected
-
             item._Button.BackgroundColor3 = selected and windowTheme.Hover or windowTheme.Button
-            item._Button.BackgroundTransparency = selected and 0 or 0.4
+            item._Button.BackgroundTransparency = selected and 0 or 0.35
             item._Button.TextColor3 = selected and windowTheme.Accent or windowTheme.Sub
             item._Button.Font = selected and Font.Title or Font.Medium
-
             if item.Stroke then
                 item.Stroke.Color = selected and windowTheme.Accent or windowTheme.Stroke
                 item.Stroke.Transparency = selected and .35 or .85
-            end
-
-            if item.AccentBar then
-                item.AccentBar.Visible = selected
             end
         end
         window.SelectedTab = tab
@@ -1171,7 +1166,28 @@ function Library:CreateWindow(config)
     end)
 
     connect(close.MouseButton1Click, function()
-        window:Destroy()
+        local confirmCfg = config.ConfirmOnClose
+
+        if confirmCfg == true or type(confirmCfg) == "table" then
+            local opts = type(confirmCfg) == "table" and confirmCfg or {}
+            window:Dialog({
+                Title = opts.Title or "Confirmar cierre",
+                Content = opts.Content or "¿Estas seguro de eliminar el script?",
+                Height = 190,
+                Buttons = {
+                    { Title = opts.CancelText or "No" },
+                    {
+                        Title = opts.ConfirmText or "Si",
+                        Primary = true,
+                        Callback = function()
+                            window:Destroy()
+                        end
+                    }
+                }
+            })
+        else
+            window:Destroy()
+        end
     end)
 
     if openButton then
@@ -1336,7 +1352,7 @@ function Library:CreateWindow(config)
         local button = Instance.new("TextButton")
         button.Size = UDim2.new(1, -8, 0, 40)
         button.BackgroundColor3 = windowTheme.Button
-        button.BackgroundTransparency = 0.4
+        button.BackgroundTransparency = 0.35
         button.BorderSizePixel = 0
         button.Text = tostring(tabConfig.Name or "Tab")
         button.Font = Font.Medium
@@ -1348,19 +1364,7 @@ function Library:CreateWindow(config)
         themeRole(button, "Button")
         corner(button, 8)
         local tabStroke = stroke(button, windowTheme.Stroke, .85)
-        padding(button, 22, 8, 0, 0)
-
-        local accentBar = Instance.new("Frame")
-        accentBar.Name = "CIDAccentBar"
-        accentBar.AnchorPoint = Vector2.new(0, 0.5)
-        accentBar.Position = UDim2.new(0, 0, 0.5, 0)
-        accentBar.Size = UDim2.fromOffset(3, 22)
-        accentBar.BackgroundColor3 = windowTheme.Accent
-        accentBar.BorderSizePixel = 0
-        accentBar.Visible = false
-        accentBar.ZIndex = 2
-        accentBar.Parent = button
-        corner(accentBar, 2)
+        padding(button, 16, 8, 0, 0)
 
         local page = Instance.new("ScrollingFrame")
         page.Size = UDim2.fromScale(1, 1)
@@ -1388,7 +1392,6 @@ function Library:CreateWindow(config)
             Name = tostring(tabConfig.Name or "Tab"),
             _Button = button,
             Stroke = tabStroke,
-            AccentBar = accentBar,
             Page = page,
             Layout = layout
         }
@@ -1412,7 +1415,7 @@ function Library:CreateWindow(config)
             if window.SelectedTab ~= tab then
                 tween(button, .15, {
                     BackgroundColor3 = windowTheme.Button,
-                    BackgroundTransparency = 0.4
+                    BackgroundTransparency = 0.35
                 }):Play()
             end
         end)
@@ -2135,17 +2138,8 @@ function Library:CreateWindow(config)
             addItem(holder)
             holder.Parent = page
 
-            local accentLine = Instance.new("Frame")
-            accentLine.Size = UDim2.fromOffset(3, 16)
-            accentLine.Position = UDim2.new(0, 0, .5, -8)
-            accentLine.BackgroundColor3 = windowTheme.Accent
-            accentLine.BorderSizePixel = 0
-            accentLine.Parent = holder
-            themeRole(accentLine, "Accent")
-            corner(accentLine, 2)
-
             local sectionLabel = label(holder, tostring(name or "Section"),
-                UDim2.fromOffset(12, 0), UDim2.new(1, -12, 1, 0),
+                UDim2.fromOffset(2, 0), UDim2.new(1, -2, 1, 0),
                 Font.Title, 12, windowTheme.Sub, "Sub")
 
             return { Label = sectionLabel, Frame = holder }
@@ -2614,26 +2608,54 @@ function Library:CreateWindow(config)
                 openButtonStroke.Color = theme.Accent
             end
         end
-        for _, item in ipairs(window.Tabs) do
-            if item.AccentBar then
-                item.AccentBar.BackgroundColor3 = theme.Accent
-            end
-        end
         if window.SelectedTab then selectTab(window.SelectedTab) end
     end
 
     function window:Destroy()
         if self.Destroyed then return end
         self.Destroyed = true
+
         for _, c in ipairs(connections) do pcall(function() c:Disconnect() end) end
         for _, c in ipairs(resizeConns) do pcall(function() c:Disconnect() end) end
         connections = {}
         resizeConns = {}
         if outsideConn then pcall(function() outsideConn:Disconnect() end) end
+
         if openButton then pcall(function() openButton:Destroy() end) end
         if main then pcall(function() main:Destroy() end) end
+
         for i = #Library._Windows, 1, -1 do
-            if Library._Windows[i] == self then table.remove(Library._Windows, i) end
+            if Library._Windows[i] == self then
+                table.remove(Library._Windows, i)
+            end
+        end
+
+        if #Library._Windows == 0 then
+            for i = #Library._NotificationQueue, 1, -1 do
+                local n = Library._NotificationQueue[i]
+                if n and n.Parent then pcall(function() n:Destroy() end) end
+            end
+            Library._NotificationQueue = {}
+
+            if Library._ScreenGui and Library._ScreenGui.Parent then
+                pcall(function() Library._ScreenGui:Destroy() end)
+            end
+            Library._ScreenGui = nil
+            Library._InstanceName = nil
+            Library._ForceName = nil
+
+            local reg = getRegistry()
+            for i = #reg, 1, -1 do
+                if reg[i].Library == Library then
+                    table.remove(reg, i)
+                end
+            end
+
+            pcall(function()
+                if _G.CID_UI_Instance == Library then
+                    _G.CID_UI_Instance = nil
+                end
+            end)
         end
     end
 
@@ -2752,6 +2774,8 @@ function Library:Destroy()
         pcall(function() self._ScreenGui:Destroy() end)
     end
     self._ScreenGui = nil
+    self._InstanceName = nil
+    self._ForceName = nil
 
     local reg = getRegistry()
     for i = #reg, 1, -1 do
