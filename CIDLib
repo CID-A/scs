@@ -1,11 +1,12 @@
 local Library = {
     Name = "CID UI",
-    Version = "2.3.0",
+    Version = "2.3.5",
     _Windows = {},
     _Themes = {},
     _ActiveTheme = "Dark",
     _ScreenGui = nil,
     _InstanceName = nil,
+    _ForceName = nil,
     _NotificationQueue = {},
     _MaxNotifications = 5,
     _Destroyed = false
@@ -495,14 +496,29 @@ and not _G.CID_UI_Instance._Destroyed then
     if not alreadyListed then
         table.insert(existingRegistry, {
             Library = _G.CID_UI_Instance,
-            ResolvedName = "CID_UI_Shared"
+            ResolvedName = "CID_UI"
         })
     end
 end
 
 local forceCoexist = false
+local preForcedName = nil
 
-if #existingRegistry > 0 then
+if type(_G) == "table" and type(_G.CID_UI_ForceName) == "string" then
+    preForcedName = _G.CID_UI_ForceName
+end
+
+if preForcedName then
+    Library._InstanceName = preForcedName
+    Library._ForceName = preForcedName
+    for i = #existingRegistry, 1, -1 do
+        local entry = existingRegistry[i]
+        if entry.ResolvedName == preForcedName then
+            pcall(function() entry.Library:Destroy() end)
+            table.remove(existingRegistry, i)
+        end
+    end
+elseif #existingRegistry > 0 then
     local behavior = nil
     if type(_G) == "table" then
         behavior = _G.CID_UI_ConflictBehavior
@@ -536,19 +552,26 @@ for name, theme in pairs(PresetThemes) do
 end
 Library.Theme = copyTheme(Library._Themes.Dark)
 
-local function getSharedGui(name)
-    if Library._ScreenGui and Library._ScreenGui.Parent then
+local function getSharedGui(name, forceFresh)
+    if Library._ScreenGui and Library._ScreenGui.Parent and not forceFresh then
         return Library._ScreenGui
     end
     local parent = getParent()
+
+    if forceFresh then
+        local stale = parent:FindFirstChild(name)
+        if stale then pcall(function() stale:Destroy() end) end
+    end
+
     local existing = parent:FindFirstChild(name)
-    if existing then
+    if existing and not forceFresh then
         for _, child in ipairs(existing:GetChildren()) do
             pcall(function() child:Destroy() end)
         end
         Library._ScreenGui = existing
         return existing
     end
+
     local gui = Instance.new("ScreenGui")
     gui.Name = name
     gui.ResetOnSpawn = false
@@ -562,7 +585,7 @@ end
 
 local function ensureNotificationContainer()
     local name = Library._InstanceName or "CID_UI"
-    local gui = getSharedGui(name)
+    local gui = getSharedGui(name, false)
     local notifName = "CID_Notifications_" .. name
     local existing = gui:FindFirstChild(notifName)
     if existing then return existing end
@@ -672,8 +695,24 @@ function Library:CreateWindow(config)
     config = safe(config)
 
     local resolvedName
+    local forceFreshGui = false
 
-    if Library._InstanceName then
+    if Library._ForceName then
+        resolvedName = Library._ForceName
+        forceFreshGui = true
+    elseif config.ForceName and config.Name then
+        resolvedName = tostring(config.Name)
+        Library._InstanceName = resolvedName
+        Library._ForceName = resolvedName
+        forceFreshGui = true
+        for i = #getRegistry(), 1, -1 do
+            local entry = getRegistry()[i]
+            if entry.ResolvedName == resolvedName and entry.Library ~= Library then
+                pcall(function() entry.Library:Destroy() end)
+                table.remove(getRegistry(), i)
+            end
+        end
+    elseif Library._InstanceName then
         resolvedName = Library._InstanceName
     else
         local baseName = tostring(config.Name or "CID_UI")
@@ -707,7 +746,17 @@ function Library:CreateWindow(config)
         end)
     end
 
-    local gui = getSharedGui(resolvedName)
+    if forceFreshGui then
+        table.insert(getRegistry(), {
+            Library = Library,
+            ResolvedName = resolvedName
+        })
+        pcall(function()
+            _G.CID_UI_Instance = Library
+        end)
+    end
+
+    local gui = getSharedGui(resolvedName, forceFreshGui)
 
     local windowTheme = Library.Theme
     if config.Theme and Library._Themes[config.Theme] then
@@ -1089,12 +1138,19 @@ function Library:CreateWindow(config)
         for _, item in ipairs(window.Tabs) do
             local selected = item == tab
             item.Page.Visible = selected
-            item._Button.BackgroundColor3 = selected and windowTheme.Hover or windowTheme.Content
+
+            item._Button.BackgroundColor3 = selected and windowTheme.Hover or windowTheme.Button
+            item._Button.BackgroundTransparency = selected and 0 or 0.4
             item._Button.TextColor3 = selected and windowTheme.Accent or windowTheme.Sub
             item._Button.Font = selected and Font.Title or Font.Medium
+
             if item.Stroke then
                 item.Stroke.Color = selected and windowTheme.Accent or windowTheme.Stroke
-                item.Stroke.Transparency = selected and .35 or .9
+                item.Stroke.Transparency = selected and .35 or .85
+            end
+
+            if item.AccentBar then
+                item.AccentBar.Visible = selected
             end
         end
         window.SelectedTab = tab
@@ -1280,18 +1336,31 @@ function Library:CreateWindow(config)
         local button = Instance.new("TextButton")
         button.Size = UDim2.new(1, -8, 0, 40)
         button.BackgroundColor3 = windowTheme.Button
+        button.BackgroundTransparency = 0.4
         button.BorderSizePixel = 0
         button.Text = tostring(tabConfig.Name or "Tab")
         button.Font = Font.Medium
-        button.TextSize = 12
+        button.TextSize = 13
         button.TextColor3 = windowTheme.Sub
         button.TextXAlignment = Enum.TextXAlignment.Left
         button.AutoButtonColor = false
         button.Parent = tabList
         themeRole(button, "Button")
         corner(button, 8)
-        local tabStroke = stroke(button, windowTheme.Stroke, .45)
-        padding(button, 25, 8, 0, 0)
+        local tabStroke = stroke(button, windowTheme.Stroke, .85)
+        padding(button, 22, 8, 0, 0)
+
+        local accentBar = Instance.new("Frame")
+        accentBar.Name = "CIDAccentBar"
+        accentBar.AnchorPoint = Vector2.new(0, 0.5)
+        accentBar.Position = UDim2.new(0, 0, 0.5, 0)
+        accentBar.Size = UDim2.fromOffset(3, 22)
+        accentBar.BackgroundColor3 = windowTheme.Accent
+        accentBar.BorderSizePixel = 0
+        accentBar.Visible = false
+        accentBar.ZIndex = 2
+        accentBar.Parent = button
+        corner(accentBar, 2)
 
         local page = Instance.new("ScrollingFrame")
         page.Size = UDim2.fromScale(1, 1)
@@ -1319,6 +1388,7 @@ function Library:CreateWindow(config)
             Name = tostring(tabConfig.Name or "Tab"),
             _Button = button,
             Stroke = tabStroke,
+            AccentBar = accentBar,
             Page = page,
             Layout = layout
         }
@@ -1332,12 +1402,18 @@ function Library:CreateWindow(config)
 
         connect(button.MouseEnter, function()
             if window.SelectedTab ~= tab then
-                tween(button, .12, { BackgroundColor3 = windowTheme.Hover }):Play()
+                tween(button, .15, {
+                    BackgroundColor3 = windowTheme.Hover,
+                    BackgroundTransparency = 0.2
+                }):Play()
             end
         end)
         connect(button.MouseLeave, function()
             if window.SelectedTab ~= tab then
-                tween(button, .12, { BackgroundColor3 = windowTheme.Content }):Play()
+                tween(button, .15, {
+                    BackgroundColor3 = windowTheme.Button,
+                    BackgroundTransparency = 0.4
+                }):Play()
             end
         end)
 
@@ -2054,14 +2130,14 @@ function Library:CreateWindow(config)
         function tab:CreateSection(name)
             if type(name) == "table" then name = name.Name end
             local holder = Instance.new("Frame")
-            holder.Size = UDim2.new(1, 0, 0, 24)
+            holder.Size = UDim2.new(1, 0, 0, 26)
             holder.BackgroundTransparency = 1
             addItem(holder)
             holder.Parent = page
 
             local accentLine = Instance.new("Frame")
-            accentLine.Size = UDim2.fromOffset(3, 14)
-            accentLine.Position = UDim2.new(0, 0, .5, -7)
+            accentLine.Size = UDim2.fromOffset(3, 16)
+            accentLine.Position = UDim2.new(0, 0, .5, -8)
             accentLine.BackgroundColor3 = windowTheme.Accent
             accentLine.BorderSizePixel = 0
             accentLine.Parent = holder
@@ -2069,7 +2145,7 @@ function Library:CreateWindow(config)
             corner(accentLine, 2)
 
             local sectionLabel = label(holder, tostring(name or "Section"),
-                UDim2.fromOffset(11, 0), UDim2.new(1, -11, 1, 0),
+                UDim2.fromOffset(12, 0), UDim2.new(1, -12, 1, 0),
                 Font.Title, 12, windowTheme.Sub, "Sub")
 
             return { Label = sectionLabel, Frame = holder }
@@ -2538,6 +2614,11 @@ function Library:CreateWindow(config)
                 openButtonStroke.Color = theme.Accent
             end
         end
+        for _, item in ipairs(window.Tabs) do
+            if item.AccentBar then
+                item.AccentBar.BackgroundColor3 = theme.Accent
+            end
+        end
         if window.SelectedTab then selectTab(window.SelectedTab) end
     end
 
@@ -2618,6 +2699,24 @@ function Library:GetInstanceName() return self._InstanceName or "CID_UI" end
 function Library:SetInstanceName(name)
     if self._InstanceName then return false end
     self._InstanceName = tostring(name or "CID_UI")
+    return true
+end
+
+function Library:ForceInstanceName(name)
+    local n = tostring(name or "CID_UI")
+    self._InstanceName = n
+    self._ForceName = n
+    local reg = getRegistry()
+    for i = #reg, 1, -1 do
+        local entry = reg[i]
+        if entry.ResolvedName == n and entry.Library ~= self then
+            pcall(function() entry.Library:Destroy() end)
+            table.remove(reg, i)
+        end
+    end
+    pcall(function()
+        _G.CID_UI_ForceName = n
+    end)
     return true
 end
 
