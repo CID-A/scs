@@ -1427,33 +1427,26 @@ function Library:CreateWindow(config)
     local Tabs = {}
     local first = true
     local activeState = nil
-    local function refreshTabs(animate)
+        local function refreshTabs(animate)
         local theme = T()
         for _, v in ipairs(BtnHolder:GetChildren()) do
             if v:IsA("TextButton") then
                 local active = activeState and activeState.button == v
-                local ic = v:FindFirstChild("Icon")
+                local icHolder = v:FindFirstChild("Icon")
+                local icImg = icHolder and icHolder:FindFirstChildOfClass("ImageLabel")
                 local lb = v:FindFirstChild("Label")
                 local ind = v:FindFirstChild("Indicator")
                 local strk = v:FindFirstChild("GlowStroke")
                 if active then
                     if animate then
                         Tween(v, 0.2, { BackgroundTransparency = 0.35 + (theme.Glass or 0) * 0.3 })
-                        if ic then
-                            Tween(ic, 0.2, { ImageColor3 = theme.Text })
-                            local sub = ic:FindFirstChildOfClass("ImageLabel")
-                            if sub then Tween(sub, 0.2, { ImageColor3 = theme.Text }) end
-                        end
+                        if icImg then Tween(icImg, 0.2, { ImageColor3 = theme.Text }) end
                         if lb then Tween(lb, 0.2, { TextColor3 = theme.Text }) end
                         if ind then Tween(ind, 0.2, { BackgroundTransparency = 0 }) end
                         if strk then Tween(strk, 0.2, { Transparency = 0.4 }) end
                     end
                     v.BackgroundColor3 = theme.ElementActive
-                    if ic then
-                        ic.ImageColor3 = theme.Text
-                        local sub = ic:FindFirstChildOfClass("ImageLabel")
-                        if sub then sub.ImageColor3 = theme.Text end
-                    end
+                    if icImg then icImg.ImageColor3 = theme.Text end
                     if lb then lb.TextColor3 = theme.Text end
                     if ind then
                         ind.BackgroundColor3 = theme.Accent
@@ -1466,21 +1459,13 @@ function Library:CreateWindow(config)
                 else
                     if animate then
                         Tween(v, 0.2, { BackgroundTransparency = 1 })
-                        if ic then
-                            Tween(ic, 0.2, { ImageColor3 = theme.SubText })
-                            local sub = ic:FindFirstChildOfClass("ImageLabel")
-                            if sub then Tween(sub, 0.2, { ImageColor3 = theme.SubText }) end
-                        end
+                        if icImg then Tween(icImg, 0.2, { ImageColor3 = theme.SubText }) end
                         if lb then Tween(lb, 0.2, { TextColor3 = theme.SubText }) end
                         if ind then Tween(ind, 0.2, { BackgroundTransparency = 1 }) end
                         if strk then Tween(strk, 0.2, { Transparency = 1 }) end
                     end
                     v.BackgroundTransparency = 1
-                    if ic then
-                        ic.ImageColor3 = theme.SubText
-                        local sub = ic:FindFirstChildOfClass("ImageLabel")
-                        if sub then sub.ImageColor3 = theme.SubText end
-                    end
+                    if icImg then icImg.ImageColor3 = theme.SubText end
                     if lb then lb.TextColor3 = theme.SubText end
                     if ind then ind.BackgroundTransparency = 1 end
                     if strk then strk.Transparency = 1 end
