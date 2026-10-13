@@ -136,6 +136,15 @@ local HttpService = game:GetService("HttpService")
 local Lighting = game:GetService("Lighting")
 local LocalPlayer = Players.LocalPlayer
 
+local function IsTouchDevice()
+    local touch = UserInputService.TouchEnabled
+    local kbm = UserInputService.KeyboardEnabled and UserInputService.MouseEnabled
+    if touch and not kbm then
+        return true
+    end
+    return false
+end
+
 local function GetHui()
     local ok, hui = pcall(function()
         if type(gethui) == "function" then return gethui() end
@@ -153,7 +162,7 @@ Library.Options = {}
 Library.Cleanups = {}
 Library.ToggleKey = Enum.KeyCode.RightShift
 Library.Open = true
-Library.Version = "1.2.0"
+Library.Version = "1.3.0"
 Library.DisplayOrder = 999999
 Library._currentTheme = "Dark"
 Library._rerenders = {}
@@ -732,7 +741,6 @@ end
 function Library:ChooseDialog(title, content, buttons)
     title = title or "Confirmar"
     content = content or ""
-
     local useTemp = false
     local folder = Library._dialogFolder
     if not folder or not folder.Parent then
@@ -749,11 +757,9 @@ function Library:ChooseDialog(title, content, buttons)
         folder = tempGui
         useTemp = true
     end
-
     for _, c in ipairs(folder:GetChildren()) do
         if not c:IsA("ScreenGui") then c:Destroy() end
     end
-
     local th = T()
     local glass = th.Glass or 0
     local Overlay = New("TextButton", {
@@ -808,7 +814,6 @@ function Library:ChooseDialog(title, content, buttons)
         TextYAlignment = Enum.TextYAlignment.Top,
         TextWrapped = true,
     })
-
     local function close()
         Tween(Box, 0.2, {
             Size = UDim2.new(0, 0, 0, 0),
@@ -823,7 +828,6 @@ function Library:ChooseDialog(title, content, buttons)
             if tg then tg:Destroy() end
         end
     end
-
     buttons = buttons or {
         { Text = "Cancelar", Color = th.ElementActive, Callback = function() end },
         { Text = "Confirmar", Color = th.Accent, Callback = function() end },
@@ -990,10 +994,16 @@ local function CreatePlayerCard(parent, cfg)
     return cardH
 end
 
-local function CreateToggleButton(cfg)
+local function CreateToggleButton(parentGui, cfg)
     cfg = cfg or {}
     if cfg.Enabled == false then return end
-    if not Library._mainGui then return end
+    local pcAllowed = cfg.Pc
+    if pcAllowed == nil then pcAllowed = true end
+    if not pcAllowed and not IsTouchDevice() then
+        return nil
+    end
+    local targetParent = parentGui or Library._mainGui
+    if not targetParent or not targetParent.Parent then return nil end
     local text = cfg.Text
     local icon = cfg.Icon or ""
     local size = cfg.Size or UDim2.fromOffset(48, 48)
@@ -1007,7 +1017,7 @@ local function CreateToggleButton(cfg)
     if not hasIcon and not text then text = "ABRIR" end
     local glass = T().Glass or 0
     local Btn = New("TextButton", {
-        Parent = Library._mainGui,
+        Parent = targetParent,
         Name = "Toggle",
         BackgroundColor3 = bgColor or T().Element,
         BackgroundTransparency = bgColor and glass or glass + 0.15,
@@ -1106,19 +1116,16 @@ function Library:CreateWindow(config)
     local subtitle = config.Subtitle or ""
     local uiName = config.Name or "CID_UI"
     if uiName == "" then uiName = "CID_UI" end
-
     if config.Theme and Library.Themes[config.Theme] then
         Library:SetTheme(config.Theme)
     end
     if config.ToggleKey then
         Library.ToggleKey = config.ToggleKey
     end
-
     local winSize = config.Size or UDim2.fromOffset(620, 420)
     if typeof(winSize) == "Vector2" then
         winSize = UDim2.fromOffset(winSize.X, winSize.Y)
     end
-
     local function findExisting(name)
         if Library._activeUIs[name] and Library._activeUIs[name].gui and Library._activeUIs[name].gui.Parent then
             return Library._activeUIs[name]
@@ -1129,7 +1136,6 @@ function Library:CreateWindow(config)
         end
         return nil
     end
-
     local existing = findExisting(uiName)
     if existing then
         local choice
@@ -1158,11 +1164,9 @@ function Library:CreateWindow(config)
             uiName = uiName .. i
         end
     end
-
     local LibName = uiName
     self._libName = LibName
     self._libNameBase = config.Name or "CID_UI"
-
     local UILibrary = New("ScreenGui", {
         Name = LibName,
         Parent = UI_CONTAINER,
@@ -1171,17 +1175,14 @@ function Library:CreateWindow(config)
         DisplayOrder = Library.DisplayOrder,
     })
     Library._mainGui = UILibrary
-
     local notifyFolder = New("Folder", { Name = "NotifyContainer", Parent = UILibrary })
     local tooltipFolder = New("Folder", { Name = "TooltipContainer", Parent = UILibrary })
     local dialogFolder = New("Folder", { Name = "DialogContainer", Parent = UILibrary })
     Library._notifyFolder = notifyFolder
     Library._tooltipFolder = tooltipFolder
     Library._dialogFolder = dialogFolder
-
     local th = T()
     local glass = th.Glass or 0
-
     local Main = New("Frame", {
         Parent = UILibrary,
         Name = "Main",
@@ -1193,7 +1194,6 @@ function Library:CreateWindow(config)
         ClipsDescendants = false,
     })
     Corner(Main, 8)
-
     local DSHolder = New("Frame", {
         Parent = Main,
         BackgroundTransparency = 1,
@@ -1213,7 +1213,6 @@ function Library:CreateWindow(config)
         ScaleType = Enum.ScaleType.Slice,
         SliceCenter = Rect.new(49, 49, 450, 450),
     })
-
     local topH = subtitle ~= "" and 48 or 42
     local TopBar = New("Frame", {
         Parent = Main,
@@ -1232,7 +1231,6 @@ function Library:CreateWindow(config)
         Size = UDim2.new(1, 0, 0, 1),
         AnchorPoint = Vector2.new(0, 1),
     })
-
     local titleY = subtitle ~= "" and 5 or 0
     local titleH = subtitle ~= "" and 22 or 1
     local Title = New("TextLabel", {
@@ -1265,7 +1263,6 @@ function Library:CreateWindow(config)
             TextTruncate = Enum.TextTruncate.AtEnd,
         })
     end
-
     local BtnHolderTop = New("Frame", {
         Parent = TopBar,
         AnchorPoint = Vector2.new(1, 0.5),
@@ -1273,7 +1270,6 @@ function Library:CreateWindow(config)
         Position = UDim2.new(1, -12, 0.5, 0),
         Size = UDim2.new(0, 74, 0, 32),
     })
-
     local MinBtn = New("TextButton", {
         Parent = BtnHolderTop,
         AnchorPoint = Vector2.new(1, 0.5),
@@ -1290,7 +1286,6 @@ function Library:CreateWindow(config)
     })
     Corner(MinBtn, 6)
     local MinStroke = Stroke(MinBtn, th.Stroke)
-
     local Close = New("TextButton", {
         Parent = BtnHolderTop,
         AnchorPoint = Vector2.new(1, 0.5),
@@ -1306,7 +1301,6 @@ function Library:CreateWindow(config)
     })
     Corner(Close, 6)
     local CloseStroke = Stroke(Close, th.Stroke)
-
     local TopLine = New("Frame", {
         Parent = TopBar,
         AnchorPoint = Vector2.new(0, 1),
@@ -1315,7 +1309,6 @@ function Library:CreateWindow(config)
         Position = UDim2.new(0, 0, 1, 0),
         Size = UDim2.new(1, 0, 0, 1),
     })
-
     Reg(function()
         local theme = T()
         local g = theme.Glass or 0
@@ -1337,7 +1330,6 @@ function Library:CreateWindow(config)
         DropShadow.ImageColor3 = theme.Shadow
         DropShadow.ImageTransparency = g > 0 and 0.75 or 0.5
     end)
-
     Close.MouseButton1Click:Connect(function()
         Library:Confirm("DESTRUIR SCRIPT", "Estas seguro de destruir el script?", function()
             Library:RunCleanups(LibName)
@@ -1350,7 +1342,6 @@ function Library:CreateWindow(config)
     MinBtn.MouseButton1Click:Connect(function()
         Library:ToggleUI()
     end)
-
     Close.MouseEnter:Connect(function()
         local theme = T()
         Tween(Close, 0.15, {
@@ -1369,7 +1360,6 @@ function Library:CreateWindow(config)
         Tween(CloseStroke, 0.15, { Color = theme.Stroke })
         Tween(Close, 0.15, { TextColor3 = theme.SubText })
     end)
-
     MinBtn.MouseEnter:Connect(function()
         local theme = T()
         Tween(MinBtn, 0.15, {
@@ -1388,9 +1378,7 @@ function Library:CreateWindow(config)
         Tween(MinStroke, 0.15, { Color = theme.Stroke })
         Tween(MinBtn, 0.15, { TextColor3 = theme.SubText })
     end)
-
     Library:DraggingEnabled(TopBar, Main)
-
     local Nav = New("Frame", {
         Parent = Main,
         Name = "Navigation",
@@ -1416,13 +1404,11 @@ function Library:CreateWindow(config)
         Position = UDim2.new(1, 0, 0, 0),
         Size = UDim2.new(0, 1, 1, 0),
     })
-
     local playerCfg = config.PlayerInfo or {}
     local cardH = 0
     if playerCfg.Enabled ~= false then
         cardH = CreatePlayerCard(Nav, playerCfg)
     end
-
     local BtnHolder = New("ScrollingFrame", {
         Parent = Nav,
         Name = "ButtonHolder",
@@ -1444,7 +1430,6 @@ function Library:CreateWindow(config)
         SortOrder = Enum.SortOrder.LayoutOrder,
         Padding = UDim.new(0, 3),
     })
-
     local ContentBox = New("Frame", {
         Parent = Main,
         Name = "ContentContainer",
@@ -1457,14 +1442,12 @@ function Library:CreateWindow(config)
         Parent = ContentBox,
         Name = "TabsFolder",
     })
-
     Reg(function()
         local theme = T()
         Nav.BackgroundColor3 = theme.Navigation
         Nav.BackgroundTransparency = theme.Glass or 0
         NavLine.BackgroundColor3 = theme.Stroke
     end)
-
     local ResizeBtn = New("TextButton", {
         Parent = Main,
         AnchorPoint = Vector2.new(1, 1),
@@ -1496,28 +1479,25 @@ function Library:CreateWindow(config)
     Reg(function()
         ResizeChar.TextColor3 = T().StrokeHover
     end)
-
     Library._activeUIs[LibName] = { gui = UILibrary, cleanups = {} }
     Library.Cleanups[LibName] = Library.Cleanups[LibName] or {}
-
     local obCfg = config.OpenButton or {}
     if obCfg.Enabled ~= false then
-        CreateToggleButton(obCfg)
+        local toggleBtn = CreateToggleButton(UILibrary, obCfg)
+        if toggleBtn then
+            Library:AddCleanup(function() Kill(toggleBtn) end, LibName)
+        end
     end
-
     UserInputService.InputBegan:Connect(function(input, gpe)
         if gpe then return end
         if input.KeyCode == Library.ToggleKey then
             Library:ToggleUI()
         end
     end)
-
     Library:UpdateBlur()
-
     local Tabs = {}
     local first = true
     local activeState = nil
-
     local function refreshTabs(animate)
         local theme = T()
         for _, v in ipairs(BtnHolder:GetChildren()) do
@@ -1564,11 +1544,9 @@ function Library:CreateWindow(config)
         end
     end
     Reg(function() refreshTabs(false) end)
-
     function Tabs:Tab(TabText, TabIcon)
         TabText = TabText or "Untitled"
         TabIcon = Library:GetIcon(TabIcon or "")
-
         local Active = New("TextButton", {
             Parent = BtnHolder,
             Name = TabText .. "_TabButton",
@@ -1581,7 +1559,6 @@ function Library:CreateWindow(config)
             ClipsDescendants = false,
         })
         Corner(Active, 6)
-
         local Indicator = New("Frame", {
             Parent = Active,
             AnchorPoint = Vector2.new(0, 0.5),
@@ -1593,11 +1570,9 @@ function Library:CreateWindow(config)
             ZIndex = 3,
         })
         Corner(Indicator, 2)
-
         local GlowStroke = Stroke(Active, T().Accent, 1.5)
         GlowStroke.Transparency = 1
         GlowStroke.Name = "GlowStroke"
-
         local Icon = New("ImageLabel", {
             Parent = Active,
             AnchorPoint = Vector2.new(0, 0.5),
@@ -1610,7 +1585,6 @@ function Library:CreateWindow(config)
             ZIndex = 2,
             Name = "Icon",
         })
-
         local Label = New("TextLabel", {
             Parent = Active,
             AnchorPoint = Vector2.new(0, 0.5),
@@ -1625,7 +1599,6 @@ function Library:CreateWindow(config)
             ZIndex = 2,
             Name = "Label",
         })
-
         local NewTab = New("ScrollingFrame", {
             Parent = TabsFolder,
             Name = "Tab_" .. TabText,
@@ -1650,7 +1623,6 @@ function Library:CreateWindow(config)
             SortOrder = Enum.SortOrder.LayoutOrder,
             Padding = UDim.new(0, 6),
         })
-
         local function selectTab()
             for _, v in ipairs(TabsFolder:GetChildren()) do
                 v.Visible = false
@@ -1659,19 +1631,15 @@ function Library:CreateWindow(config)
             activeState = { button = Active }
             refreshTabs(true)
         end
-
         if first then
             first = false
             selectTab()
         end
-
         Active.MouseButton1Click:Connect(function()
             if activeState and activeState.button == Active then return end
             selectTab()
         end)
-
         local Elements = {}
-
         local function ApplyHover(btn, stroke)
             btn.MouseEnter:Connect(function()
                 if not btn.Parent then return end
@@ -1688,7 +1656,6 @@ function Library:CreateWindow(config)
                 if stroke then Tween(stroke, 0.12, { Color = theme.Stroke }) end
             end)
         end
-
         local function GetTooltip()
             if Library._tooltipLabel and Library._tooltipLabel.Parent then
                 return Library._tooltipLabel
@@ -1720,7 +1687,6 @@ function Library:CreateWindow(config)
             end)
             return Library._tooltipLabel
         end
-
         local function AttachTooltip(obj, text)
             if not text or text == "" then return end
             obj.MouseEnter:Connect(function()
@@ -1741,7 +1707,6 @@ function Library:CreateWindow(config)
                 Library._tooltipLabel.Position = UDim2.new(0, loc.X + 14, 0, loc.Y + 6)
             end)
         end
-
         local function ElemIcon(parent, iconName, centerY)
             if not iconName or iconName == "" then return nil, 12 end
             local posY
@@ -1767,7 +1732,6 @@ function Library:CreateWindow(config)
             end)
             return iconLbl, 42
         end
-
         function Elements:Section(title)
             title = title or "Section"
             local Section = New("Frame", {
@@ -1809,7 +1773,6 @@ function Library:CreateWindow(config)
             end)
             return Section
         end
-
         function Elements:Separator()
             local Sep = New("Frame", {
                 Parent = NewTab,
@@ -1826,7 +1789,6 @@ function Library:CreateWindow(config)
             Reg(function() Line.BackgroundColor3 = T().Stroke end)
             return Sep
         end
-
         function Elements:Divider(text)
             local Div = New("Frame", {
                 Parent = NewTab,
@@ -1878,7 +1840,6 @@ function Library:CreateWindow(config)
             end
             return Div
         end
-
         function Elements:Button(arg1, arg2, arg3, arg4)
             local o = ParseArgs(arg1, arg2, arg3, arg4)
             local name, callback, flag, tooltip, icon = o.Title, o.Callback, o.Flag, o.Description, o.Icon
@@ -1972,7 +1933,6 @@ function Library:CreateWindow(config)
             end)
             return { Set = function() end, Get = function() return nil end }
         end
-
         function Elements:ImageButton(arg1, arg2, arg3, arg4)
             local o = ParseArgs(arg1, arg2, arg3, arg4)
             local name, callback, flag, tooltip = o.Title, o.Callback, o.Flag, o.Description
@@ -2068,7 +2028,6 @@ function Library:CreateWindow(config)
             end)
             return { Set = function() end, Get = function() return nil end }
         end
-
         function Elements:Image(arg1, arg2, arg3)
             local o
             if type(arg1) == "table" then
@@ -2109,7 +2068,6 @@ function Library:CreateWindow(config)
             end
             return obj
         end
-
         function Elements:Toggle(arg1, arg2, arg3, arg4, arg5)
             local o = ParseArgs(arg1, arg2, arg3, arg4, arg5)
             local name, callback, flag, default, tooltip, icon = o.Title, o.Callback, o.Flag, o.Default, o.Description, o.Icon
@@ -2228,7 +2186,6 @@ function Library:CreateWindow(config)
             end
             return obj
         end
-
         function Elements:Slider(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
             local o
             if type(arg1) == "table" then
@@ -2378,7 +2335,6 @@ function Library:CreateWindow(config)
             if flag then Library.Options[flag] = obj end
             return obj
         end
-
         function Elements:TextBox(arg1, arg2, arg3, arg4, arg5)
             local o = ParseArgs(arg1, arg2, arg3, arg4, arg5)
             local name, callback, flag, placeholder, tooltip, icon = o.Title, o.Callback, o.Flag, o.Placeholder, o.Description, o.Icon
@@ -2455,7 +2411,6 @@ function Library:CreateWindow(config)
             if flag then Library.Options[flag] = obj end
             return obj
         end
-
         function Elements:Keybind(arg1, arg2, arg3, arg4)
             local o
             if type(arg1) == "table" then
@@ -2569,7 +2524,6 @@ function Library:CreateWindow(config)
             end
             return obj
         end
-
         function Elements:Dropdown(arg1, arg2, arg3, arg4, arg5, arg6)
             local o
             if type(arg1) == "table" then
@@ -2767,7 +2721,6 @@ function Library:CreateWindow(config)
             end
             return obj
         end
-
         function Elements:MultiDropdown(arg1, arg2, arg3, arg4, arg5, arg6)
             local o
             if type(arg1) == "table" then
@@ -2997,7 +2950,6 @@ function Library:CreateWindow(config)
             end
             return obj
         end
-
         function Elements:ColorPicker(arg1, arg2, arg3, arg4, arg5)
             local o = ParseArgs(arg1, arg2, arg3, arg4)
             local name, default, callback, flag, tooltip, icon = o.Title, o.Color, o.Callback, o.Flag, o.Description, o.Icon
@@ -3170,7 +3122,6 @@ function Library:CreateWindow(config)
             if flag then Library.Options[flag] = obj end
             return obj
         end
-
         function Elements:Label(text)
             text = text or "Label"
             local Frame = New("Frame", {
@@ -3204,7 +3155,6 @@ function Library:CreateWindow(config)
             function obj:Get() return lbl.Text end
             return obj
         end
-
         function Elements:Paragraph(text)
             text = text or "Paragraph"
             local Frame = New("Frame", {
@@ -3247,7 +3197,6 @@ function Library:CreateWindow(config)
             function obj:Get() return lbl.Text end
             return obj
         end
-
         local function makeStatus(text, key, iconId)
             local palette = {
                 Info = {
@@ -3311,7 +3260,6 @@ function Library:CreateWindow(config)
             function obj:Get() return lbl.Text end
             return obj
         end
-
         function Elements:InfoLabel(text)
             return makeStatus(text or "Info", "Info", Library.Icons.Info)
         end
@@ -3324,7 +3272,6 @@ function Library:CreateWindow(config)
         function Elements:SuccessLabel(text)
             return makeStatus(text or "Success", "Success", Library.Icons.Check)
         end
-
         function Elements:ProgressBar(name, maxv)
             name = name or "Progress"
             maxv = maxv or 100
@@ -3400,7 +3347,6 @@ function Library:CreateWindow(config)
             end
             return obj
         end
-
         function Elements:Accordion(title)
             title = title or "Accordion"
             local open = false
@@ -3481,10 +3427,8 @@ function Library:CreateWindow(config)
             end)
             return { Parent = Content }
         end
-
         return Elements
     end
-
     return Tabs
 end
 
@@ -3514,20 +3458,19 @@ end
 function Library:DestroyUI(skipConfirm)
     if not self._mainGui then return end
     local gui = self._mainGui
-    if skipConfirm then
+    local function doDestroy()
         Library:RunCleanups(Library._libName)
         Library._activeUIs[Library._libName] = nil
         Library._mainGui = nil
-        gui:Destroy()
+        Kill(gui)
+        local tempDialog = UI_CONTAINER:FindFirstChild("CID_TempDialog")
+        if tempDialog then tempDialog:Destroy() end
         Library:UpdateBlur()
+    end
+    if skipConfirm then
+        doDestroy()
     else
-        Library:Confirm("DESTRUIR SCRIPT", "Estas seguro de destruir el script?", function()
-            Library:RunCleanups(Library._libName)
-            Library._activeUIs[Library._libName] = nil
-            Library._mainGui = nil
-            gui:Destroy()
-            Library:UpdateBlur()
-        end, function() end, "Si", "No")
+        Library:Confirm("DESTRUIR SCRIPT", "Estas seguro de destruir el script?", doDestroy, function() end, "Si", "No")
     end
 end
 
