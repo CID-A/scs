@@ -82,7 +82,7 @@ Library.Options = {}
 Library.Cleanups = {}
 Library.ToggleKey = Enum.KeyCode.RightShift
 Library.Open = true
-Library.Version = "1.2.0"
+Library.Version = "1.0.1"
 Library.DisplayOrder = 999999
 Library._currentTheme = "Dark"
 Library._rerenders = {}
@@ -91,8 +91,6 @@ Library._notifications = {}
 Library._mainGui = nil
 Library._libName = nil
 Library._notifyFolder = nil
-Library._tooltipFolder = nil
-Library._tooltipLabel = nil
 Library._dialogFolder = nil
 
 local NOTIFY_HEIGHT = 64
@@ -1105,10 +1103,8 @@ function Library:CreateWindow(config)
     })
     Library._mainGui = UILibrary
     local notifyFolder = New("Folder", { Name = "NotifyContainer", Parent = UILibrary })
-    local tooltipFolder = New("Folder", { Name = "TooltipContainer", Parent = UILibrary })
     local dialogFolder = New("Folder", { Name = "DialogContainer", Parent = UILibrary })
     Library._notifyFolder = notifyFolder
-    Library._tooltipFolder = tooltipFolder
     Library._dialogFolder = dialogFolder
     local th = T()
     local glass = th.Glass or 0
@@ -1427,7 +1423,7 @@ function Library:CreateWindow(config)
     local Tabs = {}
     local first = true
     local activeState = nil
-        local function refreshTabs(animate)
+    local function refreshTabs(animate)
         local theme = T()
         for _, v in ipairs(BtnHolder:GetChildren()) do
             if v:IsA("TextButton") then
@@ -1593,57 +1589,6 @@ function Library:CreateWindow(config)
                 local theme = T()
                 Tween(btn, 0.12, { BackgroundColor3 = theme.Element })
                 if stroke then Tween(stroke, 0.12, { Color = theme.Stroke }) end
-            end)
-        end
-        local function GetTooltip()
-            if Library._tooltipLabel and Library._tooltipLabel.Parent then
-                return Library._tooltipLabel
-            end
-            local folder = Library._tooltipFolder
-            if not folder or not folder.Parent then return nil end
-            local th2 = T()
-            Library._tooltipLabel = New("TextLabel", {
-                Parent = folder,
-                BackgroundColor3 = th2.Element,
-                BackgroundTransparency = (th2.Glass or 0) + 0.05,
-                Size = UDim2.new(0, 100, 0, 24),
-                Font = Enum.Font.Gotham,
-                TextColor3 = th2.Text,
-                TextSize = 12,
-                Visible = false,
-                ZIndex = 999,
-            })
-            Corner(Library._tooltipLabel, 4)
-            Stroke(Library._tooltipLabel, th2.Stroke, 1)
-            Reg(function()
-                if not Library._tooltipLabel or not Library._tooltipLabel.Parent then return end
-                local theme = T()
-                Library._tooltipLabel.BackgroundColor3 = theme.Element
-                Library._tooltipLabel.BackgroundTransparency = (theme.Glass or 0) + 0.05
-                Library._tooltipLabel.TextColor3 = theme.Text
-                local s = Library._tooltipLabel:FindFirstChildOfClass("UIStroke")
-                if s then s.Color = theme.Stroke end
-            end)
-            return Library._tooltipLabel
-        end
-        local function AttachTooltip(obj, text)
-            if not text or text == "" then return end
-            obj.MouseEnter:Connect(function()
-                local lbl = GetTooltip()
-                if not lbl or not lbl.Parent then return end
-                lbl.Text = text
-                lbl.Size = UDim2.new(0, math.max(60, #text * 7 + 20), 0, 24)
-                lbl.Visible = true
-            end)
-            obj.MouseLeave:Connect(function()
-                if Library._tooltipLabel then
-                    Library._tooltipLabel.Visible = false
-                end
-            end)
-            obj.Mousemoved:Connect(function()
-                if not Library._tooltipLabel or not Library._tooltipLabel.Visible then return end
-                local loc = UserInputService:GetMouseLocation()
-                Library._tooltipLabel.Position = UDim2.new(0, loc.X + 14, 0, loc.Y + 6)
             end)
         end
         local function ElemIcon(parent, iconName, centerY)
@@ -1973,7 +1918,6 @@ function Library:CreateWindow(config)
                 if descLbl then descLbl.TextColor3 = theme.SubText end
             end)
             ApplyHover(Btn, stroke)
-            AttachTooltip(Btn, tooltip)
             Btn.MouseButton1Click:Connect(function()
                 Ripple(Btn)
                 if flag then Library.Flags[flag] = true end
@@ -1988,7 +1932,7 @@ function Library:CreateWindow(config)
             else
                 o = { Image = arg1 or "", Height = arg2 or 120, Description = arg3 }
             end
-            local imageId, height, tooltip = o.Image, o.Height, o.Description
+            local imageId, height = o.Image, o.Height
             local Frame = New("Frame", {
                 Parent = NewTab,
                 BackgroundColor3 = T().Element,
@@ -2011,7 +1955,6 @@ function Library:CreateWindow(config)
                 Frame.BackgroundTransparency = T().Glass or 0
                 stroke.Color = T().Stroke
             end)
-            AttachTooltip(Frame, tooltip)
             local obj = {}
             function obj:Set(id)
                 img.Image = Library:GetIcon(id)
@@ -2023,7 +1966,7 @@ function Library:CreateWindow(config)
         end
         function Elements:Toggle(arg1, arg2, arg3, arg4, arg5)
             local o = ParseArgs(arg1, arg2, arg3, arg4, arg5)
-            local name, callback, flag, default, tooltip, icon = o.Title, o.Callback, o.Flag, o.Default, o.Description, o.Icon
+            local name, callback, flag, default, icon = o.Title, o.Callback, o.Flag, o.Default, o.Icon
             local toggled = default or false
             local hasIcon = icon and icon ~= ""
             local Toggle = New("TextButton", {
@@ -2118,7 +2061,6 @@ function Library:CreateWindow(config)
             end
             update(false)
             ApplyHover(Toggle, stroke)
-            AttachTooltip(Toggle, tooltip)
             Toggle.MouseButton1Click:Connect(function()
                 toggled = not toggled
                 Ripple(Toggle)
@@ -2157,7 +2099,7 @@ function Library:CreateWindow(config)
                     Description = arg7,
                 }
             end
-            local name, callback, flag, default, tooltip, icon = o.Title, o.Callback, o.Flag, o.Default, o.Description, o.Icon
+            local name, callback, flag, default, icon = o.Title, o.Callback, o.Flag, o.Default, o.Icon
             local minv, maxv = o.Min, o.Max
             local value = math.clamp(default or minv, minv, maxv)
             local hasIcon = icon and icon ~= ""
@@ -2276,7 +2218,6 @@ function Library:CreateWindow(config)
                     end
                 end
             end)
-            AttachTooltip(lbl, tooltip)
             local obj = {}
             function obj:Set(v, fire)
                 value = math.clamp(v, minv, maxv)
@@ -2296,7 +2237,7 @@ function Library:CreateWindow(config)
         end
         function Elements:TextBox(arg1, arg2, arg3, arg4, arg5)
             local o = ParseArgs(arg1, arg2, arg3, arg4, arg5)
-            local name, callback, flag, placeholder, tooltip, icon = o.Title, o.Callback, o.Flag, o.Placeholder, o.Description, o.Icon
+            local name, callback, flag, placeholder, icon = o.Title, o.Callback, o.Flag, o.Placeholder, o.Icon
             local hasIcon = icon and icon ~= ""
             local Frame = New("Frame", {
                 Parent = NewTab,
@@ -2361,7 +2302,6 @@ function Library:CreateWindow(config)
                     pcall(callback, Input.Text)
                 end
             end)
-            AttachTooltip(lbl, tooltip)
             local obj = {}
             function obj:Set(v)
                 Input.Text = tostring(v)
@@ -2503,7 +2443,7 @@ function Library:CreateWindow(config)
                     Description = arg6,
                 }
             end
-            local name, options, callback, flag, default, tooltip, icon = o.Title, o.Options, o.Callback, o.Flag, o.Default, o.Description, o.Icon
+            local name, options, callback, flag, default, icon = o.Title, o.Options, o.Callback, o.Flag, o.Default, o.Icon
             local hasIcon = icon and icon ~= ""
             local selected = default or options[1]
             local Dropdown = New("Frame", {
@@ -2620,7 +2560,6 @@ function Library:CreateWindow(config)
             end
             Header.MouseButton1Click:Connect(toggleOpen)
             ApplyHover(Header, stroke)
-            AttachTooltip(Header, tooltip)
             local function makeOption(opt)
                 local ob = New("TextButton", {
                     Parent = List,
@@ -2703,7 +2642,7 @@ function Library:CreateWindow(config)
                     Description = arg6,
                 }
             end
-            local name, options, callback, flag, default, tooltip, icon = o.Title, o.Options, o.Callback, o.Flag, o.Default, o.Description, o.Icon
+            local name, options, callback, flag, default, icon = o.Title, o.Options, o.Callback, o.Flag, o.Default, o.Icon
             local hasIcon = icon and icon ~= ""
             local selected = default or {}
             local Multi = New("Frame", {
@@ -2802,7 +2741,6 @@ function Library:CreateWindow(config)
             end
             Header.MouseButton1Click:Connect(toggleOpen)
             ApplyHover(Header, stroke)
-            AttachTooltip(Header, tooltip)
             local optionButtons = {}
             local function makeOption(opt)
                 local isSel = table.find(selected, opt) ~= nil
@@ -2923,7 +2861,7 @@ function Library:CreateWindow(config)
         end
         function Elements:ColorPicker(arg1, arg2, arg3, arg4, arg5)
             local o = ParseArgs(arg1, arg2, arg3, arg4)
-            local name, default, callback, flag, tooltip, icon = o.Title, o.Color, o.Callback, o.Flag, o.Description, o.Icon
+            local name, default, callback, flag, icon = o.Title, o.Color, o.Callback, o.Flag, o.Icon
             local hasIcon = icon and icon ~= ""
             local h, s, v = Color3.toHSV(default)
             local color = default
@@ -3080,7 +3018,6 @@ function Library:CreateWindow(config)
             bind(sT, function(r) s = r end)
             bind(vT, function(r) v = r end)
             visualUpdate()
-            AttachTooltip(lbl, tooltip)
             local obj = {}
             function obj:Set(c, fire)
                 color = c
