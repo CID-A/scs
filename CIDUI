@@ -128,6 +128,7 @@ Library.Icons = {
     Scan = "rbxassetid://10734942565", ScanFace = "rbxassetid://10734942198",
     ScanLine = "rbxassetid://10734942351", Arrow = "rbxassetid://10709790948",
     Down = "rbxassetid://10709790948", Ghost = "rbxassetid://10734962068",
+    Keyboard = "rbxassetid://10734982144",
 }
 
 local ICON_ALIASES = {
@@ -145,6 +146,7 @@ local ICON_ALIASES = {
     moon = "Moon", snow = "Snowflake", cloud = "Cloud", wind = "Wind",
     drop = "Drop", gift = "Gift", tag = "Tag", bell = "Bell",
     save = "Save", edit = "Edit", copy = "Copy", link = "Link",
+    keyboard = "Keyboard",
 }
 
 function Library:AddIcon(name, id)
@@ -175,6 +177,15 @@ local CoreGui = game:GetService("CoreGui")
 local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 
+local function GetHui()
+    if type(gethui) == "function" then
+        local ok, r = pcall(gethui)
+        if ok and r then return r end
+    end
+    return CoreGui
+end
+
+local UI_CONTAINER = GetHui()
 local CONFIG_FOLDER = "UniversalGUI_Configs"
 
 Library.Flags = {}
@@ -182,12 +193,18 @@ Library.Options = {}
 Library.Cleanups = {}
 Library.ToggleKey = Enum.KeyCode.RightShift
 Library.Open = true
-Library.Version = "1.1.0"
+Library.Version = "9.0.0"
 Library.DisplayOrder = 999999
 Library._currentTheme = "Dark"
 Library._rerenders = {}
 Library._activeUIs = {}
 Library._notifications = {}
+Library._mainGui = nil
+Library._libName = nil
+Library._notifyFolder = nil
+Library._tooltipFolder = nil
+Library._tooltipLabel = nil
+Library._dialogFolder = nil
 
 local NOTIFY_HEIGHT = 64
 local NOTIFY_GAP = 10
@@ -515,6 +532,7 @@ function Library:GetConfigs()
             if n then table.insert(list, n) end
         end
     end
+    table.sort(list)
     return list
 end
 
@@ -530,7 +548,7 @@ local function RepositionNotifications()
     for i, item in ipairs(Library._notifications) do
         if item.frame and item.frame.Parent then
             local y = NOTIFY_BASE_Y - ((n - i) * (NOTIFY_HEIGHT + NOTIFY_GAP))
-            Tween(item.frame, 0.3, {Position = UDim2.new(1, -320, 1, y)})
+            Tween(item.frame, 0.3, {Position = UDim2.new(1, -320, 0, y)})
         end
     end
 end
@@ -542,7 +560,7 @@ local function RemoveNotification(item, fast)
     if item.frame and item.frame.Parent then
         local dur = fast and 0.15 or 0.3
         local curY = item.frame.Position.Y.Offset
-        Tween(item.frame, dur, {Position = UDim2.new(1, 320, 1, curY), BackgroundTransparency = 1})
+        Tween(item.frame, dur, {Position = UDim2.new(1, 320, 0, curY), BackgroundTransparency = 1})
         for _, v in ipairs(item.frame:GetDescendants()) do
             if v:IsA("GuiObject") then
                 local p = {BackgroundTransparency = 1}
@@ -556,19 +574,31 @@ local function RemoveNotification(item, fast)
     RepositionNotifications()
 end
 
+local function EnsureContainer(folderName)
+    if not Library._mainGui or not Library._mainGui.Parent then
+        local gui = New("ScreenGui", {
+            Name = "UniversalGUI_Temp", Parent = UI_CONTAINER, ResetOnSpawn = false,
+            ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = Library.DisplayOrder
+        })
+        Library._mainGui = gui
+    end
+    local folder = Library._mainGui:FindFirstChild(folderName)
+    if not folder then
+        folder = New("Folder", {Name = folderName, Parent = Library._mainGui})
+    end
+    return folder
+end
+
 function Library:Notify(title, content, duration, image)
     title = title or "Notificacion"
     content = content or ""
     duration = duration or 4
+    local folder = EnsureContainer("NotifyContainer")
     while #Library._notifications >= NOTIFY_MAX do
         RemoveNotification(Library._notifications[1], true)
     end
-    local gui = CoreGui:FindFirstChild("UniversalGUI_Notify")
-    if not gui then
-        gui = New("ScreenGui", {Name = "UniversalGUI_Notify", Parent = CoreGui, ResetOnSpawn = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = Library.DisplayOrder})
-    end
     local th = T()
-    local N = New("Frame", {Parent = gui, Size = UDim2.new(0, 300, 0, NOTIFY_HEIGHT), Position = UDim2.new(1, 320, 1, NOTIFY_BASE_Y), BackgroundColor3 = th.Element, BackgroundTransparency = 1})
+    local N = New("Frame", {Parent = folder, Size = UDim2.new(0, 300, 0, NOTIFY_HEIGHT), Position = UDim2.new(1, 320, 1, NOTIFY_BASE_Y), BackgroundColor3 = th.Element, BackgroundTransparency = 1})
     Corner(N, 6)
     local strk = Stroke(N, th.Stroke); strk.Transparency = 1
     local Ind = New("Frame", {Parent = N, Size = UDim2.new(0, 4, 1, -12), Position = UDim2.new(0, 6, 0, 6), BackgroundColor3 = th.Accent, BackgroundTransparency = 1})
@@ -593,11 +623,10 @@ end
 function Library:ChooseDialog(title, content, buttons)
     title = title or "Confirmar"
     content = content or ""
-    local gui = CoreGui:FindFirstChild("UniversalGUI_Dialog")
-    if gui then gui:Destroy() end
-    gui = New("ScreenGui", {Name = "UniversalGUI_Dialog", Parent = CoreGui, ResetOnSpawn = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = Library.DisplayOrder + 10})
+    local folder = EnsureContainer("DialogContainer")
+    for _, c in ipairs(folder:GetChildren()) do c:Destroy() end
     local th = T()
-    local Overlay = New("TextButton", {Parent = gui, Size = UDim2.new(1,0,1,0), BackgroundColor3 = Color3.fromRGB(0,0,0), BackgroundTransparency = 0.75, Text = "", AutoButtonColor = false, ZIndex = 100})
+    local Overlay = New("TextButton", {Parent = folder, Size = UDim2.new(1,0,1,0), BackgroundColor3 = Color3.fromRGB(0,0,0), BackgroundTransparency = 0.75, Text = "", AutoButtonColor = false, ZIndex = 100})
     local BOX_W = 440
     local BOX_H = 200
     local Box = New("Frame", {Parent = Overlay, AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.new(0.5,0,0.5,0), Size = UDim2.new(0, 0, 0, 0), BackgroundColor3 = th.Background, BackgroundTransparency = 1, ZIndex = 101})
@@ -612,7 +641,7 @@ function Library:ChooseDialog(title, content, buttons)
         Tween(strk, 0.2, {Transparency = 1})
         Tween(Overlay, 0.2, {BackgroundTransparency = 1})
         task.wait(0.22)
-        SafeDestroy(gui)
+        SafeDestroy(Overlay)
     end
     buttons = buttons or {
         {Text = "Cancelar", Color = th.ElementActive, Callback = function() end},
@@ -636,7 +665,7 @@ function Library:ChooseDialog(title, content, buttons)
             if b.Callback then task.spawn(function() pcall(b.Callback) end) end
         end)
     end
-    return gui
+    return Overlay
 end
 
 function Library:Dialog(title, content, onConfirm, onCancel, confirmText, cancelText)
@@ -653,51 +682,6 @@ function Library:Confirm(title, content, onYes, onNo, yesText, noText)
         {Text = noText or "No", Color = th.ElementActive, Callback = onNo or function() end},
         {Text = yesText or "Si", Color = th.Danger, Callback = onYes or function() end},
     })
-end
-
-local function CreateToggleButton(lib, cfg)
-    cfg = cfg or {}
-    if cfg.Enabled == false then return end
-    local text = cfg.Text
-    local icon = cfg.Icon or ""
-    local size = cfg.Size or UDim2.fromOffset(78, 34)
-    local pos = cfg.Position or UDim2.new(0.02, 0, 0.45, 0)
-    local bgColor = cfg.BackgroundColor
-    local textColor = cfg.TextColor
-    local iconColor = cfg.IconColor
-    local draggable = cfg.Draggable
-    if draggable == nil then draggable = true end
-    local hasIcon = icon ~= "" and icon ~= nil
-    if not hasIcon and not text then text = "ABRIR" end
-    local gui = New("ScreenGui", {Name = "UniversalGUI_Toggle_" .. (lib._libName or "x"), Parent = CoreGui, ResetOnSpawn = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = Library.DisplayOrder})
-    local Btn = New("TextButton", {Parent = gui, Name = "Toggle", BackgroundColor3 = bgColor or T().Element, BackgroundTransparency = bgColor and 0 or 0.15, Position = pos, Size = size, Font = Enum.Font.GothamBold, Text = hasIcon and "" or (text or "ABRIR"), TextColor3 = textColor or T().Text, TextSize = 14, AutoButtonColor = false, Active = true})
-    Corner(Btn, 8)
-    local strk = Stroke(Btn, T().Stroke)
-    local iconLbl
-    if hasIcon then
-        iconLbl = New("ImageLabel", {Parent = Btn, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0.5, 0), Size = UDim2.new(0.65, 0, 0.65, 0), BackgroundTransparency = 1, Image = Library:GetIcon(icon), ImageColor3 = iconColor or T().Accent, ScaleType = Enum.ScaleType.Fit})
-    end
-    RegisterRerender(function()
-        local theme = T()
-        Btn.BackgroundColor3 = bgColor or theme.Element
-        Btn.BackgroundTransparency = bgColor and 0 or 0.15
-        if not hasIcon then Btn.TextColor3 = textColor or theme.Text end
-        if iconLbl then iconLbl.ImageColor3 = iconColor or theme.Accent end
-        strk.Color = theme.Stroke
-    end)
-    if draggable then lib:DraggingEnabled(Btn, Btn) end
-    Btn.MouseEnter:Connect(function()
-        local theme = T()
-        if not bgColor then Tween(Btn, 0.15, {BackgroundColor3 = theme.ElementHover}) end
-        Tween(strk, 0.15, {Color = theme.StrokeHover})
-    end)
-    Btn.MouseLeave:Connect(function()
-        local theme = T()
-        if not bgColor then Tween(Btn, 0.15, {BackgroundColor3 = theme.Element}) end
-        Tween(strk, 0.15, {Color = theme.Stroke})
-    end)
-    Btn.MouseButton1Click:Connect(function() lib:ToggleUI() end)
-    return gui
 end
 
 local function CreatePlayerCard(parent, cfg)
@@ -729,6 +713,51 @@ local function CreatePlayerCard(parent, cfg)
         divider.BackgroundColor3 = theme.Stroke
     end)
     return cardHeight
+end
+
+local function CreateToggleButton(cfg)
+    cfg = cfg or {}
+    if cfg.Enabled == false then return end
+    if not Library._mainGui then return end
+    local text = cfg.Text
+    local icon = cfg.Icon or ""
+    local size = cfg.Size or UDim2.fromOffset(78, 34)
+    local pos = cfg.Position or UDim2.new(0.02, 0, 0.45, 0)
+    local bgColor = cfg.BackgroundColor
+    local textColor = cfg.TextColor
+    local iconColor = cfg.IconColor
+    local draggable = cfg.Draggable
+    if draggable == nil then draggable = true end
+    local hasIcon = icon ~= "" and icon ~= nil
+    if not hasIcon and not text then text = "ABRIR" end
+    local Btn = New("TextButton", {Parent = Library._mainGui, Name = "Toggle", BackgroundColor3 = bgColor or T().Element, BackgroundTransparency = bgColor and 0 or 0.15, Position = pos, Size = size, Font = Enum.Font.GothamBold, Text = hasIcon and "" or (text or "ABRIR"), TextColor3 = textColor or T().Text, TextSize = 14, AutoButtonColor = false, Active = true, ZIndex = 100})
+    Corner(Btn, 8)
+    local strk = Stroke(Btn, T().Stroke)
+    local iconLbl
+    if hasIcon then
+        iconLbl = New("ImageLabel", {Parent = Btn, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0.5, 0), Size = UDim2.new(0.65, 0, 0.65, 0), BackgroundTransparency = 1, Image = Library:GetIcon(icon), ImageColor3 = iconColor or T().Accent, ScaleType = Enum.ScaleType.Fit})
+    end
+    RegisterRerender(function()
+        local theme = T()
+        Btn.BackgroundColor3 = bgColor or theme.Element
+        Btn.BackgroundTransparency = bgColor and 0 or 0.15
+        if not hasIcon then Btn.TextColor3 = textColor or theme.Text end
+        if iconLbl then iconLbl.ImageColor3 = iconColor or theme.Accent end
+        strk.Color = theme.Stroke
+    end)
+    if draggable then Library:DraggingEnabled(Btn, Btn) end
+    Btn.MouseEnter:Connect(function()
+        local theme = T()
+        if not bgColor then Tween(Btn, 0.15, {BackgroundColor3 = theme.ElementHover}) end
+        Tween(strk, 0.15, {Color = theme.StrokeHover})
+    end)
+    Btn.MouseLeave:Connect(function()
+        local theme = T()
+        if not bgColor then Tween(Btn, 0.15, {BackgroundColor3 = theme.Element}) end
+        Tween(strk, 0.15, {Color = theme.Stroke})
+    end)
+    Btn.MouseButton1Click:Connect(function() Library:ToggleUI() end)
+    return Btn
 end
 
 local function ParseArgs(a, b, c, d, e, f)
@@ -774,7 +803,7 @@ function Library:CreateWindow(config)
         if Library._activeUIs[name] and Library._activeUIs[name].gui and Library._activeUIs[name].gui.Parent then
             return Library._activeUIs[name]
         end
-        local inCore = CoreGui:FindFirstChild(name)
+        local inCore = UI_CONTAINER:FindFirstChild(name)
         if inCore then return {gui = inCore, cleanups = Library.Cleanups[name] or {}} end
         return nil
     end
@@ -794,8 +823,6 @@ function Library:CreateWindow(config)
         if choice == "replace" then
             Library:RunCleanups(uiName)
             SafeDestroy(existing.gui)
-            local oldToggle = CoreGui:FindFirstChild("UniversalGUI_Toggle_" .. uiName)
-            if oldToggle then oldToggle:Destroy() end
             Library._activeUIs[uiName] = nil
         elseif choice == "both" then
             local i = 2
@@ -808,7 +835,16 @@ function Library:CreateWindow(config)
     self._libName = LibName
     self._libNameBase = config.Name or "CID_UI"
 
-    local UILibrary = New("ScreenGui", {Name = LibName, Parent = CoreGui, ResetOnSpawn = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = Library.DisplayOrder})
+    local UILibrary = New("ScreenGui", {Name = LibName, Parent = UI_CONTAINER, ResetOnSpawn = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = Library.DisplayOrder})
+    Library._mainGui = UILibrary
+
+    local notifyFolder = New("Folder", {Name = "NotifyContainer", Parent = UILibrary})
+    local tooltipFolder = New("Folder", {Name = "TooltipContainer", Parent = UILibrary})
+    local dialogFolder = New("Folder", {Name = "DialogContainer", Parent = UILibrary})
+    Library._notifyFolder = notifyFolder
+    Library._tooltipFolder = tooltipFolder
+    Library._dialogFolder = dialogFolder
+
     local th = T()
     local Main = New("Frame", {Parent = UILibrary, Name = "Main", AnchorPoint = Vector2.new(0.5, 0.5), BackgroundColor3 = th.Background, Position = UDim2.new(0.5, 0, 0.5, 0), Size = winSize, ClipsDescendants = false})
     Corner(Main, 8)
@@ -856,19 +892,9 @@ function Library:CreateWindow(config)
 
     local function destroyWithCleanup()
         Library:RunCleanups(LibName)
-        local center = UDim2.new(0, Main.AbsolutePosition.X + Main.AbsoluteSize.X/2, 0, Main.AbsolutePosition.Y + Main.AbsoluteSize.Y/2)
-        Tween(Main, 0.15, {Size = UDim2.new(0,0,0,0), Position = center})
-        for _, v in ipairs(Main:GetDescendants()) do
-            if v:IsA("GuiObject") then
-                local props = {BackgroundTransparency = 1}
-                if v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox") then props.TextTransparency = 1 end
-                if v:IsA("ImageLabel") or v:IsA("ImageButton") then props.ImageTransparency = 1 end
-                Tween(v, 0.15, props)
-            end
-        end
-        task.wait(0.2)
-        Library._activeUIs[LibName] = nil
         SafeDestroy(UILibrary)
+        Library._activeUIs[LibName] = nil
+        Library._mainGui = nil
     end
 
     Close.MouseButton1Click:Connect(function()
@@ -936,10 +962,7 @@ function Library:CreateWindow(config)
     Library.Cleanups[LibName] = Library.Cleanups[LibName] or {}
 
     local obCfg = config.OpenButton or {}
-    if obCfg.Enabled ~= false then
-        local toggleGui = CreateToggleButton(self, obCfg)
-        if toggleGui then Library:AddCleanup(function() SafeDestroy(toggleGui) end, LibName) end
-    end
+    if obCfg.Enabled ~= false then CreateToggleButton(obCfg) end
 
     UserInputService.InputBegan:Connect(function(input, gpe)
         if gpe then return end
@@ -1034,24 +1057,21 @@ function Library:CreateWindow(config)
             end)
         end
 
-        local tooltipGui, tooltipLabel
         local function GetTooltip()
-            if tooltipLabel and tooltipLabel.Parent then return tooltipLabel end
-            if not tooltipGui or not tooltipGui.Parent then
-                tooltipGui = New("ScreenGui", {Name = "UniversalGUI_Tooltip", Parent = CoreGui, ResetOnSpawn = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = Library.DisplayOrder + 20})
-            end
-            tooltipLabel = New("TextLabel", {Parent = tooltipGui, BackgroundColor3 = T().Element, BackgroundTransparency = 0.05, Size = UDim2.new(0, 100, 0, 24), Font = Enum.Font.Gotham, TextColor3 = T().Text, TextSize = 12, Visible = false, ZIndex = 999})
-            Corner(tooltipLabel, 4)
-            Stroke(tooltipLabel, T().Stroke, 1)
+            if Library._tooltipLabel and Library._tooltipLabel.Parent then return Library._tooltipLabel end
+            local folder = Library._tooltipFolder or EnsureContainer("TooltipContainer")
+            Library._tooltipLabel = New("TextLabel", {Parent = folder, BackgroundColor3 = T().Element, BackgroundTransparency = 0.05, Size = UDim2.new(0, 100, 0, 24), Font = Enum.Font.Gotham, TextColor3 = T().Text, TextSize = 12, Visible = false, ZIndex = 999})
+            Corner(Library._tooltipLabel, 4)
+            Stroke(Library._tooltipLabel, T().Stroke, 1)
             RegisterRerender(function()
-                if not tooltipLabel or not tooltipLabel.Parent then return end
+                if not Library._tooltipLabel or not Library._tooltipLabel.Parent then return end
                 local theme = T()
-                tooltipLabel.BackgroundColor3 = theme.Element
-                tooltipLabel.TextColor3 = theme.Text
-                local s = tooltipLabel:FindFirstChildOfClass("UIStroke")
+                Library._tooltipLabel.BackgroundColor3 = theme.Element
+                Library._tooltipLabel.TextColor3 = theme.Text
+                local s = Library._tooltipLabel:FindFirstChildOfClass("UIStroke")
                 if s then s.Color = theme.Stroke end
             end)
-            return tooltipLabel
+            return Library._tooltipLabel
         end
         local function AttachTooltip(obj, text)
             if not text or text == "" then return end
@@ -1062,11 +1082,13 @@ function Library:CreateWindow(config)
                 lbl.Size = UDim2.new(0, math.max(60, #text * 7 + 20), 0, 24)
                 lbl.Visible = true
             end)
-            obj.MouseLeave:Connect(function() if tooltipLabel then tooltipLabel.Visible = false end end)
+            obj.MouseLeave:Connect(function()
+                if Library._tooltipLabel then Library._tooltipLabel.Visible = false end
+            end)
             obj.MouseMoved:Connect(function()
-                if not tooltipLabel or not tooltipLabel.Visible then return end
+                if not Library._tooltipLabel or not Library._tooltipLabel.Visible then return end
                 local loc = UserInputService:GetMouseLocation()
-                tooltipLabel.Position = UDim2.new(0, loc.X + 14, 0, loc.Y + 6)
+                Library._tooltipLabel.Position = UDim2.new(0, loc.X + 14, 0, loc.Y + 6)
             end)
         end
 
@@ -1091,16 +1113,7 @@ function Library:CreateWindow(config)
         function Elements:Section(title)
             title = title or "Section"
             local Section = New("Frame", {Parent = NewTab, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 22)})
-            local T1 = New("TextLabel", {
-                Parent = Section, BackgroundTransparency = 1,
-                Size = UDim2.new(0, 0, 0, 18),
-                Position = UDim2.new(0.5, 0, 0, 2),
-                AnchorPoint = Vector2.new(0.5, 0),
-                Font = Enum.Font.GothamBold, Text = title,
-                TextColor3 = T().SubText, TextSize = 12,
-                TextXAlignment = Enum.TextXAlignment.Center,
-                AutomaticSize = Enum.AutomaticSize.X
-            })
+            local T1 = New("TextLabel", {Parent = Section, BackgroundTransparency = 1, Size = UDim2.new(0, 0, 0, 18), Position = UDim2.new(0.5, 0, 0, 2), AnchorPoint = Vector2.new(0.5, 0), Font = Enum.Font.GothamBold, Text = title, TextColor3 = T().SubText, TextSize = 12, TextXAlignment = Enum.TextXAlignment.Center, AutomaticSize = Enum.AutomaticSize.X})
             local LineL = New("Frame", {Parent = Section, BackgroundColor3 = T().Stroke, BorderSizePixel = 0, Position = UDim2.new(0, 4, 0, 11), Size = UDim2.new(0.5, -(T1.TextBounds.X/2 + 12), 0, 1)})
             local LineR = New("Frame", {Parent = Section, BackgroundColor3 = T().Stroke, BorderSizePixel = 0, Position = UDim2.new(0.5, T1.TextBounds.X/2 + 8, 0, 11), Size = UDim2.new(0.5, -(T1.TextBounds.X/2 + 12), 0, 1)})
             RegisterRerender(function()
@@ -1176,7 +1189,7 @@ function Library:CreateWindow(config)
             return {Set = function() end, Get = function() return nil end}
         end
 
-        function Elements:ImageButton(arg1, arg2, arg3, arg4, arg5)
+        function Elements:ImageButton(arg1, arg2, arg3, arg4)
             local o = ParseArgs(arg1, arg2, arg3, arg4)
             local name, callback, flag, tooltip = o.Title, o.Callback, o.Flag, o.Description
             local image = o.Icon or o.Image
@@ -1187,11 +1200,7 @@ function Library:CreateWindow(config)
             Corner(Btn, 5)
             local stroke = Stroke(Btn, T().Stroke)
             local iconLbl, textX
-            if hasIcon then
-                iconLbl, textX = ElementIcon(Btn, image)
-            else
-                textX = 12
-            end
+            if hasIcon then iconLbl, textX = ElementIcon(Btn, image) else textX = 12 end
             local lbl
             if hasDesc then
                 lbl = New("TextLabel", {Parent = Btn, BackgroundTransparency = 1, Size = UDim2.new(1, -(textX + 34), 0, 18), Position = UDim2.new(0, textX, 0, 9), Font = Enum.Font.Gotham, Text = name, TextColor3 = T().Text, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top})
@@ -1531,10 +1540,19 @@ function Library:CreateWindow(config)
             local obj = {}
             function obj:Set(val) selected = val; CurrentLbl.Text = tostring(val); if flag then Library.Flags[flag] = val end; pcall(callback, val) end
             function obj:Get() return selected end
+            function obj:IsOpen() return open end
             function obj:Refresh(newOptions)
-                options = newOptions
+                options = newOptions or options
                 for _, c in ipairs(List:GetChildren()) do if c:IsA("TextButton") then c:Destroy() end end
                 for _, opt in ipairs(options) do makeOption(opt) end
+                if not table.find(options, selected) then
+                    selected = options[1]
+                    CurrentLbl.Text = tostring(selected)
+                end
+                if open then
+                    local h = math.min(#options * 28 + 8, 170)
+                    List.Size = UDim2.new(1, -8, 0, h)
+                end
             end
             if flag then Library.Flags[flag] = selected; Library.Options[flag] = obj end
             return obj
@@ -1572,7 +1590,7 @@ function Library:CreateWindow(config)
             ApplyHover(Header, stroke)
             AttachTooltip(Header, tooltip)
             local optionButtons = {}
-            for _, opt in ipairs(options) do
+            local function makeOption(opt)
                 local isSel = table.find(selected, opt) ~= nil
                 local ob = New("TextButton", {Parent = List, BackgroundColor3 = T().Element, Size = UDim2.new(1, 0, 0, 26), AutoButtonColor = false, Text = ""})
                 Corner(ob, 3)
@@ -1596,6 +1614,7 @@ function Library:CreateWindow(config)
                     pcall(callback, selected)
                 end)
             end
+            for _, opt in ipairs(options) do makeOption(opt) end
             updateCount()
             RegisterRerender(function()
                 local theme = T()
@@ -1620,6 +1639,20 @@ function Library:CreateWindow(config)
             local obj = {}
             function obj:Set(vals) selected = vals or {}; updateCount(); pcall(callback, selected) end
             function obj:Get() return selected end
+            function obj:IsOpen() return open end
+            function obj:Refresh(newOptions)
+                options = newOptions or options
+                for _, item in ipairs(optionButtons) do
+                    if item.btn.Parent then item.btn:Destroy() end
+                end
+                optionButtons = {}
+                for _, opt in ipairs(options) do makeOption(opt) end
+                updateCount()
+                if open then
+                    local h = math.min(#options * 28 + 8, 170)
+                    List.Size = UDim2.new(1, -8, 0, h)
+                end
+            end
             if flag then Library.Flags[flag] = selected; Library.Options[flag] = obj end
             return obj
         end
@@ -1841,6 +1874,101 @@ function Library:CreateWindow(config)
             return {Parent = Content}
         end
 
+        function Elements:Config()
+            Elements:Section("Config Manager")
+            local currentConfig = nil
+
+            local nameBox = Elements:TextBox({
+                Title = "Nombre del config",
+                Icon = "FileText",
+                Placeholder = "mi_config",
+            })
+
+            local configDropdown = Elements:Dropdown({
+                Title = "Configs guardados",
+                Icon = "Folder",
+                Options = Library:GetConfigs(),
+                Callback = function(v) currentConfig = v end,
+            })
+
+            Elements:Button({
+                Title = "Guardar config",
+                Icon = "Save",
+                Description = "Guarda el estado actual con el nombre indicado",
+                Callback = function()
+                    local name = nameBox:Get()
+                    if not name or name == "" then
+                        Library:Notify("Config", "Escribe un nombre", 2)
+                        return
+                    end
+                    if Library:SaveConfig(name) then
+                        Library:Notify("Config", "Guardado: " .. name, 2)
+                        configDropdown:Refresh(Library:GetConfigs())
+                    else
+                        Library:Notify("Config", "Error al guardar", 2)
+                    end
+                end
+            })
+
+            Elements:Button({
+                Title = "Cargar config",
+                Icon = "Download",
+                Description = "Usa el nombre escrito o el seleccionado",
+                Callback = function()
+                    local name = nameBox:Get()
+                    if not name or name == "" then name = currentConfig end
+                    if not name then
+                        Library:Notify("Config", "Selecciona uno", 2)
+                        return
+                    end
+                    if Library:LoadConfig(name) then
+                        Library:Notify("Config", "Cargado: " .. name, 2)
+                    else
+                        Library:Notify("Config", "No existe", 2)
+                    end
+                end
+            })
+
+            Elements:Button({
+                Title = "Eliminar config",
+                Icon = "Trash",
+                Description = "Elimina el config seleccionado o escrito",
+                Callback = function()
+                    local name = nameBox:Get()
+                    if not name or name == "" then name = currentConfig end
+                    if not name then
+                        Library:Notify("Config", "Selecciona uno", 2)
+                        return
+                    end
+                    if Library:DeleteConfig(name) then
+                        Library:Notify("Config", "Eliminado: " .. name, 2)
+                        configDropdown:Refresh(Library:GetConfigs())
+                    else
+                        Library:Notify("Config", "No se pudo eliminar", 2)
+                    end
+                end
+            })
+
+            Elements:Button({
+                Title = "Refrescar lista",
+                Icon = "RefreshCw",
+                Description = "Actualiza la lista de configs guardados",
+                Callback = function()
+                    configDropdown:Refresh(Library:GetConfigs())
+                end
+            })
+
+            local stop = false
+            task.spawn(function()
+                while not stop do
+                    task.wait(2)
+                    if Dropdown.Parent == nil then break end
+                    pcall(function() configDropdown:Refresh(Library:GetConfigs()) end)
+                end
+            end)
+            Library:AddCleanup(function() stop = true end)
+        end
+
         return Elements
     end
 
@@ -1862,46 +1990,42 @@ function Library:Create(TitleText, Options)
 end
 
 function Library:ToggleUI()
-    if not self._libName then return end
-    local gui = CoreGui:FindFirstChild(self._libName)
-    if not gui then return end
-    gui.Enabled = not gui.Enabled
-    self.Open = gui.Enabled
+    if not self._mainGui then return end
+    local Main = self._mainGui:FindFirstChild("Main")
+    if not Main then return end
+    Main.Visible = not Main.Visible
+    self.Open = Main.Visible
 end
 
 function Library:DestroyUI(skipConfirm)
-    if not self._libName then return end
-    local gui = CoreGui:FindFirstChild(self._libName)
-    if not gui then return end
+    if not self._mainGui then return end
+    local gui = self._mainGui
     if skipConfirm then
-        Library:RunCleanups(self._libName)
-        Library._activeUIs[self._libName] = nil
+        Library:RunCleanups(Library._libName)
+        Library._activeUIs[Library._libName] = nil
+        Library._mainGui = nil
         gui:Destroy()
     else
         Library:Confirm("DESTRUIR SCRIPT", "Estas seguro de destruir el script?", function()
             Library:RunCleanups(Library._libName)
             Library._activeUIs[Library._libName] = nil
+            Library._mainGui = nil
             gui:Destroy()
         end, function() end, "Si", "No")
     end
 end
 
 function Library:DestroyAll()
-    for name, _ in pairs(Library._activeUIs) do
+    for name, _ in ipairs(Library._activeUIs) do
         Library:RunCleanups(name)
-        local g = CoreGui:FindFirstChild(name)
-        if g then g:Destroy() end
-        local tg = CoreGui:FindFirstChild("UniversalGUI_Toggle_" .. name)
-        if tg then tg:Destroy() end
+    end
+    for _, v in ipairs(UI_CONTAINER:GetChildren()) do
+        if v.Name:sub(1, 12) == "UniversalGUI" or v.Name == "CID_UI" or Library._activeUIs[v.Name] then
+            v:Destroy()
+        end
     end
     Library._activeUIs = {}
-    for _, n in ipairs({"UniversalGUI_Notify", "UniversalGUI_Tooltip", "UniversalGUI_Dialog"}) do
-        local g = CoreGui:FindFirstChild(n)
-        if g then g:Destroy() end
-    end
-    for _, v in ipairs(CoreGui:GetChildren()) do
-        if v.Name:sub(1, 19) == "UniversalGUI_Toggle" then v:Destroy() end
-    end
+    Library._mainGui = nil
     Library._rerenders = {}
     Library._notifications = {}
 end
