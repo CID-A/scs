@@ -1,5 +1,3 @@
--- CID LIBRARY API
-
 local Library = {}
 
 Library.Icons = {
@@ -184,7 +182,7 @@ Library.Options = {}
 Library.Cleanups = {}
 Library.ToggleKey = Enum.KeyCode.RightShift
 Library.Open = true
-Library.Version = "1.0.0"
+Library.Version = "1.1.0"
 Library.DisplayOrder = 999999
 Library._currentTheme = "Dark"
 Library._rerenders = {}
@@ -1181,13 +1179,39 @@ function Library:CreateWindow(config)
         function Elements:ImageButton(arg1, arg2, arg3, arg4, arg5)
             local o = ParseArgs(arg1, arg2, arg3, arg4)
             local name, callback, flag, tooltip = o.Title, o.Callback, o.Flag, o.Description
-            local image = o.Image
-            local Btn = New("TextButton", {Parent = NewTab, BackgroundColor3 = T().Element, Size = UDim2.new(1, 0, 0, 38), AutoButtonColor = false, Text = "", ClipsDescendants = true})
+            local image = o.Icon or o.Image
+            local hasIcon = image and image ~= ""
+            local hasDesc = tooltip and tooltip ~= ""
+            local btnHeight = hasDesc and 54 or 38
+            local Btn = New("TextButton", {Parent = NewTab, BackgroundColor3 = T().Element, Size = UDim2.new(1, 0, 0, btnHeight), AutoButtonColor = false, Text = "", ClipsDescendants = true})
             Corner(Btn, 5)
             local stroke = Stroke(Btn, T().Stroke)
-            local lbl = New("TextLabel", {Parent = Btn, BackgroundTransparency = 1, Size = UDim2.new(1, -50, 1, 0), Position = UDim2.new(0, 12, 0, 0), Font = Enum.Font.Gotham, Text = name, TextColor3 = T().Text, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left})
-            local ico = New("ImageLabel", {Parent = Btn, AnchorPoint = Vector2.new(1,0.5), BackgroundTransparency = 1, Position = UDim2.new(1, -12, 0.5, 0), Size = UDim2.new(0, 20, 0, 20), Image = Library:GetIcon(image), ImageColor3 = T().SubText, ScaleType = Enum.ScaleType.Fit})
-            RegisterRerender(function() Btn.BackgroundColor3 = T().Element; stroke.Color = T().Stroke; lbl.TextColor3 = T().Text; ico.ImageColor3 = T().SubText end)
+            local iconLbl, textX
+            if hasIcon then
+                iconLbl, textX = ElementIcon(Btn, image)
+            else
+                textX = 12
+            end
+            local lbl
+            if hasDesc then
+                lbl = New("TextLabel", {Parent = Btn, BackgroundTransparency = 1, Size = UDim2.new(1, -(textX + 34), 0, 18), Position = UDim2.new(0, textX, 0, 9), Font = Enum.Font.Gotham, Text = name, TextColor3 = T().Text, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top})
+            else
+                lbl = New("TextLabel", {Parent = Btn, BackgroundTransparency = 1, Size = UDim2.new(1, -(textX + 34), 1, 0), Position = UDim2.new(0, textX, 0, 0), Font = Enum.Font.Gotham, Text = name, TextColor3 = T().Text, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left})
+            end
+            local descLbl
+            if hasDesc then
+                descLbl = New("TextLabel", {Parent = Btn, BackgroundTransparency = 1, Size = UDim2.new(1, -(textX + 34), 0, 16), Position = UDim2.new(0, textX, 0, 30), Font = Enum.Font.Gotham, Text = tooltip, TextColor3 = T().SubText, TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd})
+            end
+            local ico = New("ImageLabel", {Parent = Btn, AnchorPoint = Vector2.new(1,0.5), BackgroundTransparency = 1, Position = UDim2.new(1, -12, 0.5, 0), Size = UDim2.new(0, 14, 0, 14), Image = Library.Icons.Cursor, ImageColor3 = T().SubText, ScaleType = Enum.ScaleType.Fit})
+            RegisterRerender(function()
+                local theme = T()
+                Btn.BackgroundColor3 = theme.Element
+                stroke.Color = theme.Stroke
+                lbl.TextColor3 = theme.Text
+                ico.ImageColor3 = theme.SubText
+                if iconLbl then iconLbl.ImageColor3 = theme.Text end
+                if descLbl then descLbl.TextColor3 = theme.SubText end
+            end)
             ApplyHover(Btn, stroke)
             AttachTooltip(Btn, tooltip)
             Btn.MouseButton1Click:Connect(function()
