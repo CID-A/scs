@@ -3,109 +3,31 @@ local Library = {}
 Library.Icons = {
     ArrowRight = "rbxassetid://10709790948",
     Bell = "rbxassetid://10734961284",
-    Bluetooth = "rbxassetid://10747382504",
-    Camera = "rbxassetid://10734975214",
     Check = "rbxassetid://10734951367",
     ChevronDown = "rbxassetid://10709790948",
-    Clock = "rbxassetid://10734984606",
-    Cloud = "rbxassetid://10734964600",
-    Coins = "rbxassetid://10747376205",
-    Compass = "rbxassetid://10734977012",
-    Copy = "rbxassetid://10734951038",
-    Crown = "rbxassetid://10734978694",
     Cursor = "rbxassetid://10734982395",
-    Database = "rbxassetid://10734949856",
-    Diamond = "rbxassetid://10734971186",
-    Download = "rbxassetid://10747365484",
-    Drop = "rbxassetid://10747364971",
-    Eye = "rbxassetid://10747375132",
-    FileText = "rbxassetid://10734951038",
-    Fire = "rbxassetid://10734961284",
-    Flower = "rbxassetid://10734965572",
-    Folder = "rbxassetid://10734951038",
-    Ghost = "rbxassetid://10734962068",
-    Gift = "rbxassetid://10747361919",
-    Globe = "rbxassetid://10747376931",
-    Heart = "rbxassetid://10723407389",
-    Home = "rbxassetid://10734943448",
     Info = "rbxassetid://10734943674",
-    Key = "rbxassetid://10747366027",
-    Keyboard = "rbxassetid://10734982144",
-    Leaf = "rbxassetid://10734965572",
-    Link = "rbxassetid://10747365771",
-    Lock = "rbxassetid://10747365771",
-    Map = "rbxassetid://10734981750",
-    MapPin = "rbxassetid://10734977012",
-    Maximize = "rbxassetid://10734953073",
-    MessageQ = "rbxassetid://16970049192",
-    Minimize = "rbxassetid://10734942072",
-    Minus = "rbxassetid://10747372346",
-    Monitor = "rbxassetid://10734943193",
-    Moon = "rbxassetid://10734973999",
-    Mouse = "rbxassetid://10734982395",
-    Palette = "rbxassetid://10734950309",
-    Pause = "rbxassetid://10734961526",
-    Play = "rbxassetid://10734961809",
-    Plus = "rbxassetid://10747372702",
-    RefreshCw = "rbxassetid://10734984355",
-    Rotate = "rbxassetid://10734984355",
-    Save = "rbxassetid://10734941499",
-    Search = "rbxassetid://10734943674",
-    Send = "rbxassetid://10734943902",
-    Server = "rbxassetid://10734949856",
-    Settings = "rbxassetid://10734950309",
-    Share = "rbxassetid://10734950813",
-    Shield = "rbxassetid://10734951847",
-    ShoppingBag = "rbxassetid://10734952273",
-    Shuffle = "rbxassetid://10734953451",
-    Skull = "rbxassetid://10734962068",
-    Sliders = "rbxassetid://10734963400",
-    Smartphone = "rbxassetid://10734963940",
-    Snow = "rbxassetid://10734964600",
-    Sparkles = "rbxassetid://10734966248",
-    Star = "rbxassetid://10734966248",
-    Sun = "rbxassetid://10734974297",
-    Sword = "rbxassetid://10734975486",
-    Target = "rbxassetid://10734977012",
-    Timer = "rbxassetid://10734984606",
-    Trash = "rbxassetid://10747362393",
-    Trophy = "rbxassetid://10747363809",
-    Upload = "rbxassetid://10747366434",
-    User = "rbxassetid://10747373176",
-    UserCheck = "rbxassetid://10747371901",
-    UserCog = "rbxassetid://10747372167",
-    UserMinus = "rbxassetid://10747372346",
-    UserPlus = "rbxassetid://10747372702",
-    Users = "rbxassetid://10747373426",
-    UserX = "rbxassetid://10747372992",
-    Video = "rbxassetid://10747374938",
     Warning = "rbxassetid://10734951173",
-    Wifi = "rbxassetid://10747382504",
-    Wind = "rbxassetid://10747382750",
     X = "rbxassetid://10747384394",
     XCircle = "rbxassetid://10747383819",
-    Zap = "rbxassetid://10734985247",
-    ZoomIn = "rbxassetid://10747384552",
-    ZoomOut = "rbxassetid://10747384679",
 }
 
-local ALIAS = {
-    home = "Home", players = "Users", user = "User", users = "Users",
-    visual = "Eye", eye = "Eye", misc = "Settings", settings = "Settings",
-    gear = "Settings", sword = "Sword", combat = "Sword", shield = "Shield",
-    star = "Star", heart = "Heart", fire = "Fire", money = "Coins",
-    bag = "ShoppingBag", map = "Map", lock = "Lock", key = "Key",
-    arrow = "ArrowRight", check = "Check", close = "X", cursor = "Cursor",
-    info = "Info", warning = "Warning", error = "XCircle", play = "Play",
-    pause = "Pause", trash = "Trash", plus = "Plus", minus = "Minus",
-    crown = "Crown", skull = "Skull", ghost = "Ghost", server = "Server",
-    folder = "Folder", file = "FileText", timer = "Timer", clock = "Clock",
-    sun = "Sun", moon = "Moon", snow = "Snow", cloud = "Cloud",
-    wind = "Wind", drop = "Drop", gift = "Gift", save = "Save",
-    copy = "Copy", link = "Link", keyboard = "Keyboard",
-    diamond = "Diamond", gem = "Diamond", trophy = "Trophy",
-    target = "Target", crosshair = "Target",
-}
+Library.LucideIcons = {}
+Library.IconPacksLoaded = false
+
+function Library:LoadLucide()
+    local ok, result = pcall(function()
+        return loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/lucide/dist/Icons.lua"))()
+    end)
+    if not ok or type(result) ~= "table" then
+        return false
+    end
+    for k, v in pairs(result) do
+        Library.LucideIcons[k] = v
+    end
+    Library.IconPacksLoaded = true
+    return true
+end
 
 function Library:AddIcon(name, id)
     if type(name) == "string" and name ~= "" and type(id) == "string" then
@@ -121,10 +43,11 @@ function Library:GetIcon(name)
     if name:sub(1, 10) == "rbxassetid" then return name end
     if name:sub(1, 4) == "http" then return name end
     if Library.Icons[name] then return Library.Icons[name] end
-    local a = ALIAS[name]
-    if a and Library.Icons[a] then return Library.Icons[a] end
+    if Library.LucideIcons[name] then return Library.LucideIcons[name] end
     local cap = name:sub(1, 1):upper() .. name:sub(2)
     if Library.Icons[cap] then return Library.Icons[cap] end
+    if Library.LucideIcons[cap] then return Library.LucideIcons[cap] end
+    if Library.LucideIcons[name:lower()] then return Library.LucideIcons[name:lower()] end
     return ""
 end
 
@@ -139,10 +62,7 @@ local LocalPlayer = Players.LocalPlayer
 local function IsTouchDevice()
     local touch = UserInputService.TouchEnabled
     local kbm = UserInputService.KeyboardEnabled and UserInputService.MouseEnabled
-    if touch and not kbm then
-        return true
-    end
-    return false
+    return touch and not kbm
 end
 
 local function GetHui()
@@ -162,7 +82,7 @@ Library.Options = {}
 Library.Cleanups = {}
 Library.ToggleKey = Enum.KeyCode.RightShift
 Library.Open = true
-Library.Version = "1.3.0"
+Library.Version = "1.2.0"
 Library.DisplayOrder = 999999
 Library._currentTheme = "Dark"
 Library._rerenders = {}
@@ -1033,25 +953,34 @@ local function CreateToggleButton(parentGui, cfg)
     })
     Corner(Btn, 8)
     local strk = Stroke(Btn, T().Stroke)
-    local iconLbl
     if hasIcon then
-        iconLbl = New("ImageLabel", {
+        local iconHolder = New("Frame", {
             Parent = Btn,
             AnchorPoint = Vector2.new(0.5, 0.5),
             Position = UDim2.new(0.5, 0, 0.5, 0),
-            Size = UDim2.new(0.65, 0, 0.65, 0),
+            Size = UDim2.new(0.6, 0, 0.6, 0),
+            BackgroundTransparency = 1,
+            Name = "Icon",
+        })
+        local iconImg = New("ImageLabel", {
+            Parent = iconHolder,
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            Position = UDim2.new(0.5, 0, 0.5, 0),
+            Size = UDim2.new(1, 0, 1, 0),
             BackgroundTransparency = 1,
             Image = Library:GetIcon(icon),
             ImageColor3 = iconColor or T().Accent,
             ScaleType = Enum.ScaleType.Fit,
         })
+        Reg(function()
+            iconImg.ImageColor3 = iconColor or T().Accent
+        end)
     end
     Reg(function()
         local theme = T()
         Btn.BackgroundColor3 = bgColor or theme.Element
         Btn.BackgroundTransparency = bgColor and (theme.Glass or 0) or ((theme.Glass or 0) + 0.15)
         if not hasIcon then Btn.TextColor3 = textColor or theme.Text end
-        if iconLbl then iconLbl.ImageColor3 = iconColor or theme.Accent end
         strk.Color = theme.Stroke
     end)
     if draggable then
@@ -1510,13 +1439,21 @@ function Library:CreateWindow(config)
                 if active then
                     if animate then
                         Tween(v, 0.2, { BackgroundTransparency = 0.35 + (theme.Glass or 0) * 0.3 })
-                        if ic then Tween(ic, 0.2, { ImageColor3 = theme.Text }) end
+                        if ic then
+                            Tween(ic, 0.2, { ImageColor3 = theme.Text })
+                            local sub = ic:FindFirstChildOfClass("ImageLabel")
+                            if sub then Tween(sub, 0.2, { ImageColor3 = theme.Text }) end
+                        end
                         if lb then Tween(lb, 0.2, { TextColor3 = theme.Text }) end
                         if ind then Tween(ind, 0.2, { BackgroundTransparency = 0 }) end
                         if strk then Tween(strk, 0.2, { Transparency = 0.4 }) end
                     end
                     v.BackgroundColor3 = theme.ElementActive
-                    if ic then ic.ImageColor3 = theme.Text end
+                    if ic then
+                        ic.ImageColor3 = theme.Text
+                        local sub = ic:FindFirstChildOfClass("ImageLabel")
+                        if sub then sub.ImageColor3 = theme.Text end
+                    end
                     if lb then lb.TextColor3 = theme.Text end
                     if ind then
                         ind.BackgroundColor3 = theme.Accent
@@ -1529,13 +1466,21 @@ function Library:CreateWindow(config)
                 else
                     if animate then
                         Tween(v, 0.2, { BackgroundTransparency = 1 })
-                        if ic then Tween(ic, 0.2, { ImageColor3 = theme.SubText }) end
+                        if ic then
+                            Tween(ic, 0.2, { ImageColor3 = theme.SubText })
+                            local sub = ic:FindFirstChildOfClass("ImageLabel")
+                            if sub then Tween(sub, 0.2, { ImageColor3 = theme.SubText }) end
+                        end
                         if lb then Tween(lb, 0.2, { TextColor3 = theme.SubText }) end
                         if ind then Tween(ind, 0.2, { BackgroundTransparency = 1 }) end
                         if strk then Tween(strk, 0.2, { Transparency = 1 }) end
                     end
                     v.BackgroundTransparency = 1
-                    if ic then ic.ImageColor3 = theme.SubText end
+                    if ic then
+                        ic.ImageColor3 = theme.SubText
+                        local sub = ic:FindFirstChildOfClass("ImageLabel")
+                        if sub then sub.ImageColor3 = theme.SubText end
+                    end
                     if lb then lb.TextColor3 = theme.SubText end
                     if ind then ind.BackgroundTransparency = 1 end
                     if strk then strk.Transparency = 1 end
@@ -1573,24 +1518,33 @@ function Library:CreateWindow(config)
         local GlowStroke = Stroke(Active, T().Accent, 1.5)
         GlowStroke.Transparency = 1
         GlowStroke.Name = "GlowStroke"
-        local Icon = New("ImageLabel", {
+        local IconHolder = New("Frame", {
             Parent = Active,
             AnchorPoint = Vector2.new(0, 0.5),
+            Position = UDim2.new(0, 15, 0.5, 0),
+            Size = UDim2.new(0, 20, 0, 20),
             BackgroundTransparency = 1,
-            Position = UDim2.new(0, 18, 0.5, 0),
-            Size = UDim2.new(0, 18, 0, 18),
+            ZIndex = 2,
+            Name = "Icon",
+        })
+        local IconImg = New("ImageLabel", {
+            Parent = IconHolder,
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            Position = UDim2.new(0.5, 0, 0.5, 0),
+            Size = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
             Image = TabIcon,
             ImageColor3 = T().SubText,
             ScaleType = Enum.ScaleType.Fit,
             ZIndex = 2,
-            Name = "Icon",
+            Name = "Img",
         })
         local Label = New("TextLabel", {
             Parent = Active,
             AnchorPoint = Vector2.new(0, 0.5),
             BackgroundTransparency = 1,
-            Position = UDim2.new(0, 46, 0.5, 0),
-            Size = UDim2.new(1, -52, 1, 0),
+            Position = UDim2.new(0, 45, 0.5, 0),
+            Size = UDim2.new(1, -50, 1, 0),
             Font = Enum.Font.GothamMedium,
             Text = TabText,
             TextColor3 = T().SubText,
@@ -1701,7 +1655,7 @@ function Library:CreateWindow(config)
                     Library._tooltipLabel.Visible = false
                 end
             end)
-            obj.MouseMoved:Connect(function()
+            obj.Mousemoved:Connect(function()
                 if not Library._tooltipLabel or not Library._tooltipLabel.Visible then return end
                 local loc = UserInputService:GetMouseLocation()
                 Library._tooltipLabel.Position = UDim2.new(0, loc.X + 14, 0, loc.Y + 6)
@@ -1715,22 +1669,30 @@ function Library:CreateWindow(config)
             else
                 posY = UDim2.new(0, 14, 0.5, 0)
             end
-            local iconLbl = New("ImageLabel", {
+            local iconHolder = New("Frame", {
                 Parent = parent,
                 AnchorPoint = Vector2.new(0, 0.5),
                 BackgroundTransparency = 1,
                 Position = posY,
                 Size = UDim2.new(0, 18, 0, 18),
+                Name = "ElemIcon",
+            })
+            local iconImg = New("ImageLabel", {
+                Parent = iconHolder,
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                Position = UDim2.new(0.5, 0, 0.5, 0),
+                Size = UDim2.new(1, 0, 1, 0),
+                BackgroundTransparency = 1,
                 Image = Library:GetIcon(iconName),
                 ImageColor3 = T().Text,
                 ScaleType = Enum.ScaleType.Fit,
             })
             Reg(function()
-                if iconLbl and iconLbl.Parent then
-                    iconLbl.ImageColor3 = T().Text
+                if iconImg and iconImg.Parent then
+                    iconImg.ImageColor3 = T().Text
                 end
             end)
-            return iconLbl, 42
+            return iconHolder, 42
         end
         function Elements:Section(title)
             title = title or "Section"
@@ -1922,7 +1884,10 @@ function Library:CreateWindow(config)
                 stroke.Color = theme.Stroke
                 lbl.TextColor3 = theme.Text
                 ico.ImageColor3 = theme.SubText
-                if iconLbl then iconLbl.ImageColor3 = theme.Text end
+                if iconLbl then
+                    local sub = iconLbl:FindFirstChildOfClass("ImageLabel")
+                    if sub then sub.ImageColor3 = theme.Text end
+                end
                 if descLbl then descLbl.TextColor3 = theme.SubText end
             end)
             ApplyHover(Button, stroke)
@@ -2016,7 +1981,10 @@ function Library:CreateWindow(config)
                 stroke.Color = theme.Stroke
                 lbl.TextColor3 = theme.Text
                 ico.ImageColor3 = theme.SubText
-                if iconLbl then iconLbl.ImageColor3 = theme.Text end
+                if iconLbl then
+                    local sub = iconLbl:FindFirstChildOfClass("ImageLabel")
+                    if sub then sub.ImageColor3 = theme.Text end
+                end
                 if descLbl then descLbl.TextColor3 = theme.SubText end
             end)
             ApplyHover(Btn, stroke)
@@ -2127,7 +2095,10 @@ function Library:CreateWindow(config)
                 stroke.Color = theme.Stroke
                 lbl.TextColor3 = theme.Text
                 Checkmark.ImageColor3 = theme.Text
-                if iconLbl then iconLbl.ImageColor3 = theme.Text end
+                if iconLbl then
+                    local sub = iconLbl:FindFirstChildOfClass("ImageLabel")
+                    if sub then sub.ImageColor3 = theme.Text end
+                end
                 if toggled then
                     Holder.BackgroundColor3 = theme.Accent
                     stroke2.Color = theme.AccentStroke
@@ -2281,7 +2252,10 @@ function Library:CreateWindow(config)
                 Fill.BackgroundColor3 = theme.Accent
                 Knob.BackgroundColor3 = theme.Text
                 kStroke.Color = theme.StrokeHover
-                if iconLbl then iconLbl.ImageColor3 = theme.Text end
+                if iconLbl then
+                    local sub = iconLbl:FindFirstChildOfClass("ImageLabel")
+                    if sub then sub.ImageColor3 = theme.Text end
+                end
             end)
             local dragging = false
             local function visualUpdate(x)
@@ -2391,7 +2365,10 @@ function Library:CreateWindow(config)
                 Input.BackgroundTransparency = theme.Glass or 0
                 Input.TextColor3 = theme.Text
                 iStroke.Color = theme.TextBoxStroke
-                if iconLbl then iconLbl.ImageColor3 = theme.Text end
+                if iconLbl then
+                    local sub = iconLbl:FindFirstChildOfClass("ImageLabel")
+                    if sub then sub.ImageColor3 = theme.Text end
+                end
             end)
             Input.FocusLost:Connect(function(enter)
                 if enter then
@@ -2484,7 +2461,10 @@ function Library:CreateWindow(config)
                 KeyBox.BackgroundTransparency = theme.Glass or 0
                 kbStroke.Color = theme.Stroke
                 KeyLbl.TextColor3 = theme.Text
-                if iconLbl then iconLbl.ImageColor3 = theme.Text end
+                if iconLbl then
+                    local sub = iconLbl:FindFirstChildOfClass("ImageLabel")
+                    if sub then sub.ImageColor3 = theme.Text end
+                end
             end)
             ApplyHover(KB, stroke)
             KB.MouseButton1Click:Connect(function()
@@ -2633,7 +2613,10 @@ function Library:CreateWindow(config)
                 List.BackgroundColor3 = theme.ListBackground
                 List.BackgroundTransparency = theme.Glass or 0
                 List.ScrollBarImageColor3 = theme.Stroke
-                if iconLbl then iconLbl.ImageColor3 = theme.Text end
+                if iconLbl then
+                    local sub = iconLbl:FindFirstChildOfClass("ImageLabel")
+                    if sub then sub.ImageColor3 = theme.Text end
+                end
                 for _, c in ipairs(List:GetChildren()) do
                     if c:IsA("TextButton") then
                         c.BackgroundColor3 = theme.Element
@@ -2906,7 +2889,10 @@ function Library:CreateWindow(config)
                 List.BackgroundColor3 = theme.ListBackground
                 List.BackgroundTransparency = theme.Glass or 0
                 List.ScrollBarImageColor3 = theme.Stroke
-                if iconLbl then iconLbl.ImageColor3 = theme.Text end
+                if iconLbl then
+                    local sub = iconLbl:FindFirstChildOfClass("ImageLabel")
+                    if sub then sub.ImageColor3 = theme.Text end
+                end
                 for _, item in ipairs(optionButtons) do
                     if item.btn.Parent then
                         item.btn.BackgroundColor3 = theme.Element
@@ -3041,7 +3027,10 @@ function Library:CreateWindow(config)
                 pStroke.Color = theme.Stroke
                 lbl.TextColor3 = theme.Text
                 pvStroke.Color = theme.Stroke
-                if iconLbl then iconLbl.ImageColor3 = theme.Text end
+                if iconLbl then
+                    local sub = iconLbl:FindFirstChildOfClass("ImageLabel")
+                    if sub then sub.ImageColor3 = theme.Text end
+                end
                 for _, tr in ipairs(tracks) do
                     tr.track.BackgroundColor3 = theme.SliderTrack
                     tr.track.BackgroundTransparency = (theme.Glass or 0) * 0.5
@@ -3489,5 +3478,7 @@ function Library:DestroyAll()
     local blur = Lighting:FindFirstChild("UniversalGUI_Blur")
     if blur then blur:Destroy() end
 end
+
+Library:LoadLucide()
 
 return Library
