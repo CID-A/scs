@@ -1,89 +1,92 @@
--- KAVIX LIBRARY UI 
-
 local Library = {}
 
 Library.Icons = {
-    Home = "rbxassetid://10734943448",
-    Settings = "rbxassetid://10734950309",
-    Search = "rbxassetid://10734943674",
-    User = "rbxassetid://10747373176",
-    Users = "rbxassetid://10747373426",
-    Sword = "rbxassetid://10734975486",
-    Shield = "rbxassetid://10734951847",
-    Target = "rbxassetid://10734977012",
-    Skull = "rbxassetid://10734962068",
-    Star = "rbxassetid://10734966248",
-    Heart = "rbxassetid://10723407389",
-    Check = "rbxassetid://10734951367",
-    Info = "rbxassetid://10734943674",
-    Warning = "rbxassetid://10734951173",
-    Bell = "rbxassetid://10734961284",
-    MessageQ = "rbxassetid://16970049192",
-    Trash = "rbxassetid://10747362393",
-    Save = "rbxassetid://10734941499",
-    Folder = "rbxassetid://10734951038",
-    FileText = "rbxassetid://10734951038",
-    Download = "rbxassetid://10747365484",
-    Upload = "rbxassetid://10747366434",
-    Share = "rbxassetid://10734950813",
-    Link = "rbxassetid://10747365771",
-    Copy = "rbxassetid://10734951038",
-    Lock = "rbxassetid://10747365771",
-    Key = "rbxassetid://10747366027",
-    Eye = "rbxassetid://10747375132",
-    Play = "rbxassetid://10734961809",
-    Pause = "rbxassetid://10734961526",
-    Camera = "rbxassetid://10734975214",
-    Microphone = "rbxassetid://10747381992",
-    Zap = "rbxassetid://10734985247",
-    Fire = "rbxassetid://10734961284",
-    Sparkles = "rbxassetid://10734966248",
-    Gift = "rbxassetid://10747361919",
-    ShoppingBag = "rbxassetid://10734952273",
-    Coins = "rbxassetid://10747376205",
-    Trophy = "rbxassetid://10747363809",
-    Crown = "rbxassetid://10734978694",
-    Diamond = "rbxassetid://10734971186",
-    Palette = "rbxassetid://10734950309",
-    Shuffle = "rbxassetid://10734953451",
-    RefreshCw = "rbxassetid://10734984355",
-    Rotate = "rbxassetid://10734984355",
-    ZoomIn = "rbxassetid://10747384552",
-    ZoomOut = "rbxassetid://10747384679",
-    Maximize = "rbxassetid://10734953073",
-    Minimize = "rbxassetid://10734942072",
-    Mouse = "rbxassetid://10734982395",
-    Cursor = "rbxassetid://10734982395",
-    X = "rbxassetid://10747384394",
-    XCircle = "rbxassetid://10747383819",
-    Plus = "rbxassetid://10747372702",
-    Minus = "rbxassetid://10747372346",
     ArrowRight = "rbxassetid://10709790948",
-    ChevronDown = "rbxassetid://10709790948",
-    Ghost = "rbxassetid://10734962068",
-    Keyboard = "rbxassetid://10734982144",
-    Server = "rbxassetid://10734949856",
-    Database = "rbxassetid://10734949856",
-    Wifi = "rbxassetid://10747382504",
+    Bell = "rbxassetid://10734961284",
     Bluetooth = "rbxassetid://10747382504",
-    Monitor = "rbxassetid://10734943193",
-    Smartphone = "rbxassetid://10734963940",
+    Camera = "rbxassetid://10734975214",
+    Check = "rbxassetid://10734951367",
+    ChevronDown = "rbxassetid://10709790948",
     Clock = "rbxassetid://10734984606",
-    Timer = "rbxassetid://10734984606",
-    Sun = "rbxassetid://10734974297",
-    Moon = "rbxassetid://10734973999",
     Cloud = "rbxassetid://10734964600",
-    Snow = "rbxassetid://10734964600",
-    Wind = "rbxassetid://10747382750",
+    Coins = "rbxassetid://10747376205",
+    Compass = "rbxassetid://10734977012",
+    Copy = "rbxassetid://10734951038",
+    Crown = "rbxassetid://10734978694",
+    Cursor = "rbxassetid://10734982395",
+    Database = "rbxassetid://10734949856",
+    Diamond = "rbxassetid://10734971186",
+    Download = "rbxassetid://10747365484",
     Drop = "rbxassetid://10747364971",
+    Eye = "rbxassetid://10747375132",
+    FileText = "rbxassetid://10734951038",
+    Fire = "rbxassetid://10734961284",
+    Flower = "rbxassetid://10734965572",
+    Folder = "rbxassetid://10734951038",
+    Ghost = "rbxassetid://10734962068",
+    Gift = "rbxassetid://10747361919",
+    Globe = "rbxassetid://10747376931",
+    Heart = "rbxassetid://10723407389",
+    Home = "rbxassetid://10734943448",
+    Info = "rbxassetid://10734943674",
+    Key = "rbxassetid://10747366027",
+    Keyboard = "rbxassetid://10734982144",
+    Leaf = "rbxassetid://10734965572",
+    Link = "rbxassetid://10747365771",
+    Lock = "rbxassetid://10747365771",
     Map = "rbxassetid://10734981750",
     MapPin = "rbxassetid://10734977012",
-    Compass = "rbxassetid://10734977012",
-    Globe = "rbxassetid://10747376931",
+    Maximize = "rbxassetid://10734953073",
+    MessageQ = "rbxassetid://16970049192",
+    Minimize = "rbxassetid://10734942072",
+    Minus = "rbxassetid://10747372346",
+    Monitor = "rbxassetid://10734943193",
+    Moon = "rbxassetid://10734973999",
+    Mouse = "rbxassetid://10734982395",
+    Palette = "rbxassetid://10734950309",
+    Pause = "rbxassetid://10734961526",
+    Play = "rbxassetid://10734961809",
+    Plus = "rbxassetid://10747372702",
+    RefreshCw = "rbxassetid://10734984355",
+    Rotate = "rbxassetid://10734984355",
+    Save = "rbxassetid://10734941499",
+    Search = "rbxassetid://10734943674",
     Send = "rbxassetid://10734943902",
-    Leaf = "rbxassetid://10734965572",
-    Flower = "rbxassetid://10734965572",
-    Crown2 = "rbxassetid://10734978694",
+    Server = "rbxassetid://10734949856",
+    Settings = "rbxassetid://10734950309",
+    Share = "rbxassetid://10734950813",
+    Shield = "rbxassetid://10734951847",
+    ShoppingBag = "rbxassetid://10734952273",
+    Shuffle = "rbxassetid://10734953451",
+    Skull = "rbxassetid://10734962068",
+    Sliders = "rbxassetid://10734963400",
+    Smartphone = "rbxassetid://10734963940",
+    Snow = "rbxassetid://10734964600",
+    Sparkles = "rbxassetid://10734966248",
+    Star = "rbxassetid://10734966248",
+    Sun = "rbxassetid://10734974297",
+    Sword = "rbxassetid://10734975486",
+    Target = "rbxassetid://10734977012",
+    Timer = "rbxassetid://10734984606",
+    Trash = "rbxassetid://10747362393",
+    Trophy = "rbxassetid://10747363809",
+    Upload = "rbxassetid://10747366434",
+    User = "rbxassetid://10747373176",
+    UserCheck = "rbxassetid://10747371901",
+    UserCog = "rbxassetid://10747372167",
+    UserMinus = "rbxassetid://10747372346",
+    UserPlus = "rbxassetid://10747372702",
+    Users = "rbxassetid://10747373426",
+    UserX = "rbxassetid://10747372992",
+    Video = "rbxassetid://10747374938",
+    Warning = "rbxassetid://10734951173",
+    Wifi = "rbxassetid://10747382504",
+    Wind = "rbxassetid://10747382750",
+    X = "rbxassetid://10747384394",
+    XCircle = "rbxassetid://10747383819",
+    Zap = "rbxassetid://10734985247",
+    ZoomIn = "rbxassetid://10747384552",
+    ZoomOut = "rbxassetid://10747384679",
 }
 
 local ALIAS = {
@@ -99,9 +102,9 @@ local ALIAS = {
     folder = "Folder", file = "FileText", timer = "Timer", clock = "Clock",
     sun = "Sun", moon = "Moon", snow = "Snow", cloud = "Cloud",
     wind = "Wind", drop = "Drop", gift = "Gift", save = "Save",
-    edit = "Edit", copy = "Copy", link = "Link", keyboard = "Keyboard",
+    copy = "Copy", link = "Link", keyboard = "Keyboard",
     diamond = "Diamond", gem = "Diamond", trophy = "Trophy",
-    target = "Target", crosshair = "Target", eye2 = "Eye",
+    target = "Target", crosshair = "Target",
 }
 
 function Library:AddIcon(name, id)
@@ -150,7 +153,7 @@ Library.Options = {}
 Library.Cleanups = {}
 Library.ToggleKey = Enum.KeyCode.RightShift
 Library.Open = true
-Library.Version = "1.0.0"
+Library.Version = "1.2.0"
 Library.DisplayOrder = 999999
 Library._currentTheme = "Dark"
 Library._rerenders = {}
@@ -645,14 +648,22 @@ function Library:Notify(title, content, duration, image)
     title = title or "Notificacion"
     content = content or ""
     duration = duration or 4
-    if not Library._notifyFolder then return end
+    local folder = Library._notifyFolder
+    if not folder or not folder.Parent then
+        if Library._mainGui then
+            folder = New("Folder", { Name = "NotifyContainer", Parent = Library._mainGui })
+            Library._notifyFolder = folder
+        else
+            return
+        end
+    end
     while #Library._notifications >= NOTIFY_MAX do
         RemoveNotif(Library._notifications[1], true)
     end
     local th = T()
     local glass = th.Glass or 0
     local N = New("Frame", {
-        Parent = Library._notifyFolder,
+        Parent = folder,
         Size = UDim2.new(0, 300, 0, NOTIFY_HEIGHT),
         Position = UDim2.new(1, 320, 1, NOTIFY_BASE_Y),
         BackgroundColor3 = th.Element,
@@ -721,12 +732,32 @@ end
 function Library:ChooseDialog(title, content, buttons)
     title = title or "Confirmar"
     content = content or ""
-    if not Library._dialogFolder then return end
-    for _, c in ipairs(Library._dialogFolder:GetChildren()) do c:Destroy() end
+
+    local useTemp = false
+    local folder = Library._dialogFolder
+    if not folder or not folder.Parent then
+        local tempGui = UI_CONTAINER:FindFirstChild("CID_TempDialog")
+        if not tempGui then
+            tempGui = New("ScreenGui", {
+                Name = "CID_TempDialog",
+                Parent = UI_CONTAINER,
+                ResetOnSpawn = false,
+                ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+                DisplayOrder = Library.DisplayOrder + 100,
+            })
+        end
+        folder = tempGui
+        useTemp = true
+    end
+
+    for _, c in ipairs(folder:GetChildren()) do
+        if not c:IsA("ScreenGui") then c:Destroy() end
+    end
+
     local th = T()
     local glass = th.Glass or 0
     local Overlay = New("TextButton", {
-        Parent = Library._dialogFolder,
+        Parent = folder,
         Size = UDim2.new(1, 0, 1, 0),
         BackgroundColor3 = Color3.fromRGB(0, 0, 0),
         BackgroundTransparency = 0.75,
@@ -777,6 +808,7 @@ function Library:ChooseDialog(title, content, buttons)
         TextYAlignment = Enum.TextYAlignment.Top,
         TextWrapped = true,
     })
+
     local function close()
         Tween(Box, 0.2, {
             Size = UDim2.new(0, 0, 0, 0),
@@ -786,7 +818,12 @@ function Library:ChooseDialog(title, content, buttons)
         Tween(Overlay, 0.2, { BackgroundTransparency = 1 })
         task.wait(0.22)
         Kill(Overlay)
+        if useTemp then
+            local tg = UI_CONTAINER:FindFirstChild("CID_TempDialog")
+            if tg then tg:Destroy() end
+        end
     end
+
     buttons = buttons or {
         { Text = "Cancelar", Color = th.ElementActive, Callback = function() end },
         { Text = "Confirmar", Color = th.Accent, Callback = function() end },
@@ -959,7 +996,7 @@ local function CreateToggleButton(cfg)
     if not Library._mainGui then return end
     local text = cfg.Text
     local icon = cfg.Icon or ""
-    local size = cfg.Size or UDim2.fromOffset(78, 34)
+    local size = cfg.Size or UDim2.fromOffset(48, 48)
     local pos = cfg.Position or UDim2.new(0.02, 0, 0.45, 0)
     local bgColor = cfg.BackgroundColor
     local textColor = cfg.TextColor
@@ -3500,6 +3537,8 @@ function Library:DestroyAll()
         local g = UI_CONTAINER:FindFirstChild(name)
         if g then g:Destroy() end
     end
+    local tg = UI_CONTAINER:FindFirstChild("CID_TempDialog")
+    if tg then tg:Destroy() end
     Library._activeUIs = {}
     Library._mainGui = nil
     Library._rerenders = {}
