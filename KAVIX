@@ -82,7 +82,7 @@ Library.Options = {}
 Library.Cleanups = {}
 Library.ToggleKey = Enum.KeyCode.RightShift
 Library.Open = true
-Library.Version = "1.0.1"
+Library.Version = "0.1.0"
 Library.DisplayOrder = 999999
 Library._currentTheme = "Dark"
 Library._rerenders = {}
@@ -100,31 +100,31 @@ local NOTIFY_MAX = 3
 
 Library.Themes = {
     Dark = {
-        Background = Color3.fromRGB(40, 40, 40),
-        TopBar = Color3.fromRGB(26, 26, 26),
-        Navigation = Color3.fromRGB(50, 50, 50),
-        Element = Color3.fromRGB(26, 26, 26),
-        ElementHover = Color3.fromRGB(54, 54, 54),
-        ElementActive = Color3.fromRGB(63, 63, 63),
-        Stroke = Color3.fromRGB(81, 81, 81),
-        StrokeHover = Color3.fromRGB(162, 162, 162),
-        Text = Color3.fromRGB(255, 255, 255),
-        SubText = Color3.fromRGB(199, 199, 199),
-        Accent = Color3.fromRGB(115, 191, 92),
-        AccentStroke = Color3.fromRGB(0, 200, 80),
-        ToggleOff = Color3.fromRGB(63, 63, 63),
-        SliderTrack = Color3.fromRGB(12, 12, 12),
-        SliderStroke = Color3.fromRGB(63, 63, 63),
-        KeyBox = Color3.fromRGB(50, 50, 50),
-        TextBox = Color3.fromRGB(72, 72, 72),
-        TextBoxStroke = Color3.fromRGB(136, 136, 136),
-        ListBackground = Color3.fromRGB(20, 20, 20),
-        Shadow = Color3.fromRGB(0, 0, 0),
-        Danger = Color3.fromRGB(200, 60, 60),
-        DangerHover = Color3.fromRGB(230, 80, 80),
-        Glass = 0,
-        Blur = false,
-    },
+    Background = Color3.fromRGB(18, 18, 18),
+    TopBar = Color3.fromRGB(12, 12, 12),
+    Navigation = Color3.fromRGB(22, 22, 22),
+    Element = Color3.fromRGB(30, 30, 30),
+    ElementHover = Color3.fromRGB(45, 45, 45),
+    ElementActive = Color3.fromRGB(75, 75, 75),
+    Stroke = Color3.fromRGB(55, 55, 55),
+    StrokeHover = Color3.fromRGB(100, 100, 100),
+    Text = Color3.fromRGB(245, 245, 245),
+    SubText = Color3.fromRGB(165, 165, 165),
+    Accent = Color3.fromRGB(180, 180, 180),
+    AccentStroke = Color3.fromRGB(220, 220, 220),
+    ToggleOff = Color3.fromRGB(65, 65, 65),
+    SliderTrack = Color3.fromRGB(15, 15, 15),
+    SliderStroke = Color3.fromRGB(60, 60, 60),
+    KeyBox = Color3.fromRGB(35, 35, 35),
+    TextBox = Color3.fromRGB(35, 35, 35),
+    TextBoxStroke = Color3.fromRGB(75, 75, 75),
+    ListBackground = Color3.fromRGB(15, 15, 15),
+    Shadow = Color3.fromRGB(0, 0, 0),
+    Danger = Color3.fromRGB(200, 60, 60),
+    DangerHover = Color3.fromRGB(230, 80, 80),
+    Glass = 0,
+    Blur = false,
+},
     Neon = {
         Background = Color3.fromRGB(15, 15, 25),
         TopBar = Color3.fromRGB(10, 10, 20),
@@ -292,9 +292,13 @@ local function New(c, p)
     local o = Instance.new(c)
     if p then
         for k, v in pairs(p) do
-            if k ~= "Parent" then o[k] = v end
+            if k ~= "Parent" then
+                o[k] = v
+            end
         end
-        if p.Parent then o.Parent = p.Parent end
+        if p.Parent then
+            o.Parent = p.Parent
+        end
     end
     return o
 end
@@ -303,7 +307,9 @@ local function Tween(o, t, props, style, dir)
     if not o or not o.Parent then return end
     local ti = TweenInfo.new(t or 0.2, style or Enum.EasingStyle.Quad, dir or Enum.EasingDirection.InOut)
     local ok, tw = pcall(TweenService.Create, TweenService, o, ti, props)
-    if ok and tw then tw:Play() end
+    if ok and tw then
+        tw:Play()
+    end
     return tw
 end
 
@@ -322,7 +328,9 @@ local function Stroke(parent, color, thickness)
 end
 
 local function Kill(o)
-    if o and o.Parent then o:Destroy() end
+    if o and o.Parent then
+        o:Destroy()
+    end
 end
 
 local function Ripple(btn)
@@ -384,12 +392,15 @@ function Library:DraggingEnabled(handle, target)
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging and target.Parent then
             local delta = input.Position - startPos
-            target.Position = UDim2.new(
-                startFrame.X.Scale,
-                startFrame.X.Offset + delta.X,
-                startFrame.Y.Scale,
-                startFrame.Y.Offset + delta.Y
-            )
+            local viewport = workspace.CurrentCamera.ViewportSize
+            local targetSize = target.AbsoluteSize
+            local minX = -(viewport.X / 2) + (targetSize.X / 2)
+            local maxX = (viewport.X / 2) - (targetSize.X / 2)
+            local minY = -(viewport.Y / 2) + (targetSize.Y / 2)
+            local maxY = (viewport.Y / 2) - (targetSize.Y / 2)
+            local newX = math.clamp(startFrame.X.Offset + delta.X, minX, maxX)
+            local newY = math.clamp(startFrame.Y.Offset + delta.Y, minY, maxY)
+            target.Position = UDim2.new(startFrame.X.Scale, newX, startFrame.Y.Scale, newY)
         end
     end)
 end
@@ -433,7 +444,9 @@ function Library:RunCleanups(uiName)
     uiName = uiName or Library._libName
     local list = Library.Cleanups[uiName]
     if list then
-        for _, fn in ipairs(list) do pcall(fn) end
+        for _, fn in ipairs(list) do
+            pcall(fn)
+        end
         Library.Cleanups[uiName] = nil
     end
 end
@@ -462,7 +475,9 @@ function Library:SaveConfig(name)
                     break
                 end
             end
-            if safe then data[flag] = val end
+            if safe then
+                data[flag] = val
+            end
         else
             data[flag] = val
         end
@@ -494,12 +509,16 @@ function Library:LoadConfig(name)
                 local ok2, enum = pcall(function()
                     return Enum[val.Type][val.Name]
                 end)
-                if ok2 then val = enum end
+                if ok2 then
+                    val = enum
+                end
             end
             Library.Flags[flag] = val
             local opt = Library.Options[flag]
             if opt and opt.Set then
-                pcall(function() opt:Set(val) end)
+                pcall(function()
+                    opt:Set(val)
+                end)
             end
         end
     end
@@ -514,7 +533,9 @@ function Library:GetConfigs()
     if ok then
         for _, f in ipairs(files) do
             local n = f:match("([^/\\]+)%.json$")
-            if n then table.insert(list, n) end
+            if n then
+                table.insert(list, n)
+            end
         end
     end
     table.sort(list)
@@ -566,7 +587,9 @@ local function RemoveNotif(item, fast)
                 Tween(v, dur, p)
             end
         end
-        task.delay(dur + 0.1, function() Kill(item.frame) end)
+        task.delay(dur + 0.1, function()
+            Kill(item.frame)
+        end)
     end
     RepositionNotifications()
 end
@@ -653,7 +676,9 @@ function Library:Notify(title, content, duration, image)
     Tween(Ind, 0.25, { BackgroundTransparency = 0 })
     Tween(TitleLbl, 0.25, { TextTransparency = 0 })
     Tween(ContentLbl, 0.25, { TextTransparency = 0 })
-    task.delay(duration, function() RemoveNotif(item) end)
+    task.delay(duration, function()
+        RemoveNotif(item)
+    end)
 end
 
 function Library:ChooseDialog(title, content, buttons)
@@ -676,7 +701,9 @@ function Library:ChooseDialog(title, content, buttons)
         useTemp = true
     end
     for _, c in ipairs(folder:GetChildren()) do
-        if not c:IsA("ScreenGui") then c:Destroy() end
+        if not c:IsA("ScreenGui") then
+            c:Destroy()
+        end
     end
     local th = T()
     local glass = th.Glass or 0
@@ -743,7 +770,9 @@ function Library:ChooseDialog(title, content, buttons)
         Kill(Overlay)
         if useTemp then
             local tg = UI_CONTAINER:FindFirstChild("CID_TempDialog")
-            if tg then tg:Destroy() end
+            if tg then
+                tg:Destroy()
+            end
         end
     end
     buttons = buttons or {
@@ -791,7 +820,9 @@ function Library:ChooseDialog(title, content, buttons)
         btn.MouseButton1Click:Connect(function()
             close()
             if b.Callback then
-                task.spawn(function() pcall(b.Callback) end)
+                task.spawn(function()
+                    pcall(b.Callback)
+                end)
             end
         end)
     end
@@ -817,7 +848,7 @@ end
 local function CreatePlayerCard(parent, cfg)
     cfg = cfg or {}
     if cfg.Enabled == false then return 0 end
-    local cardH = cfg.Height or 82
+    local cardH = cfg.Height or 75
     local glass = T().Glass or 0
     local card = New("Frame", {
         Parent = parent,
@@ -825,12 +856,12 @@ local function CreatePlayerCard(parent, cfg)
         Size = UDim2.new(1, 0, 0, cardH),
         Position = UDim2.new(0, 0, 0, 0),
     })
-    local avatarSize = cfg.AvatarSize or 48
+    local avatarSize = cfg.AvatarSize or 40
     local avatarFrame = New("Frame", {
         Parent = card,
         BackgroundColor3 = T().Element,
         BackgroundTransparency = glass,
-        Position = UDim2.new(0, 14, 0, 16),
+        Position = UDim2.new(0, 12, 0.5, -avatarSize / 2),
         Size = UDim2.new(0, avatarSize, 0, avatarSize),
         ClipsDescendants = true,
         BorderSizePixel = 0,
@@ -856,12 +887,12 @@ local function CreatePlayerCard(parent, cfg)
             avatar.Image = thumb
         end
     end)
-    local nameX = 14 + avatarSize + 10
+    local nameX = 12 + avatarSize + 10
     local nameLbl = New("TextLabel", {
         Parent = card,
         BackgroundTransparency = 1,
-        Position = UDim2.new(0, nameX, 0, 18),
-        Size = UDim2.new(1, -nameX - 12, 0, 18),
+        Position = UDim2.new(0, nameX, 0.5, -16),
+        Size = UDim2.new(1, -nameX - 12, 0, 16),
         Font = Enum.Font.GothamBold,
         Text = LocalPlayer.Name,
         TextColor3 = T().Text,
@@ -872,31 +903,20 @@ local function CreatePlayerCard(parent, cfg)
     local dispLbl = New("TextLabel", {
         Parent = card,
         BackgroundTransparency = 1,
-        Position = UDim2.new(0, nameX, 0, 37),
-        Size = UDim2.new(1, -nameX - 12, 0, 16),
+        Position = UDim2.new(0, nameX, 0.5, 2),
+        Size = UDim2.new(1, -nameX - 12, 0, 14),
         Font = Enum.Font.Gotham,
-        Text = "@" .. LocalPlayer.DisplayName,
-        TextColor3 = T().SubText,
+        Text = "Verified User",
+        TextColor3 = T().Accent,
         TextSize = 11,
         TextXAlignment = Enum.TextXAlignment.Left,
         TextTruncate = Enum.TextTruncate.AtEnd,
     })
-    local statusLbl = New("TextLabel", {
-        Parent = card,
-        BackgroundTransparency = 1,
-        Position = UDim2.new(0, nameX, 0, 54),
-        Size = UDim2.new(1, -nameX - 12, 0, 14),
-        Font = Enum.Font.Gotham,
-        Text = "En linea",
-        TextColor3 = T().Accent,
-        TextSize = 10,
-        TextXAlignment = Enum.TextXAlignment.Left,
-    })
     local divider = New("Frame", {
-        Parent = parent,
+        Parent = card,
         BackgroundColor3 = T().Stroke,
         BorderSizePixel = 0,
-        Position = UDim2.new(0, 12, 0, cardH - 2),
+        Position = UDim2.new(0, 12, 0, 0),
         Size = UDim2.new(1, -24, 0, 1),
     })
     Reg(function()
@@ -905,8 +925,7 @@ local function CreatePlayerCard(parent, cfg)
         avatarFrame.BackgroundTransparency = theme.Glass or 0
         aStroke.Color = theme.Accent
         nameLbl.TextColor3 = theme.Text
-        dispLbl.TextColor3 = theme.SubText
-        statusLbl.TextColor3 = theme.Accent
+        dispLbl.TextColor3 = theme.Accent
         divider.BackgroundColor3 = theme.Stroke
     end)
     return cardH
@@ -1119,6 +1138,8 @@ function Library:CreateWindow(config)
         ClipsDescendants = false,
     })
     Corner(Main, 8)
+    local UIScale = Instance.new("UIScale", Main)
+    UIScale.Scale = 1
     local DSHolder = New("Frame", {
         Parent = Main,
         BackgroundTransparency = 1,
@@ -1332,13 +1353,22 @@ function Library:CreateWindow(config)
     local playerCfg = config.PlayerInfo or {}
     local cardH = 0
     if playerCfg.Enabled ~= false then
-        cardH = CreatePlayerCard(Nav, playerCfg)
+        local ProfileHolder = New("Frame", {
+            Parent = Nav,
+            Name = "ProfileHolder",
+            AnchorPoint = Vector2.new(0, 1),
+            Position = UDim2.new(0, 0, 1, 0),
+            Size = UDim2.new(1, 0, 0, 0),
+            BackgroundTransparency = 1,
+        })
+        cardH = CreatePlayerCard(ProfileHolder, playerCfg)
+        ProfileHolder.Size = UDim2.new(1, 0, 0, cardH)
     end
     local BtnHolder = New("ScrollingFrame", {
         Parent = Nav,
         Name = "ButtonHolder",
         BackgroundTransparency = 1,
-        Position = UDim2.new(0, 0, 0, cardH),
+        Position = UDim2.new(0, 0, 0, 0),
         Size = UDim2.new(1, 0, 1, -cardH),
         CanvasSize = UDim2.new(0, 0, 0, 0),
         AutomaticCanvasSize = Enum.AutomaticSize.Y,
@@ -1410,7 +1440,9 @@ function Library:CreateWindow(config)
     if obCfg.Enabled ~= false then
         local toggleBtn = CreateToggleButton(UILibrary, obCfg)
         if toggleBtn then
-            Library:AddCleanup(function() Kill(toggleBtn) end, LibName)
+            Library:AddCleanup(function()
+                Kill(toggleBtn)
+            end, LibName)
         end
     end
     UserInputService.InputBegan:Connect(function(input, gpe)
@@ -1469,7 +1501,9 @@ function Library:CreateWindow(config)
             end
         end
     end
-    Reg(function() refreshTabs(false) end)
+    Reg(function()
+        refreshTabs(false)
+    end)
     function Tabs:Tab(TabText, TabIcon)
         TabText = TabText or "Untitled"
         TabIcon = Library:GetIcon(TabIcon or "")
@@ -1575,6 +1609,7 @@ function Library:CreateWindow(config)
             selectTab()
         end)
         local Elements = {}
+        local CurrentParent = NewTab
         local function ApplyHover(btn, stroke)
             btn.MouseEnter:Connect(function()
                 if not btn.Parent then return end
@@ -1626,48 +1661,67 @@ function Library:CreateWindow(config)
         end
         function Elements:Section(title)
             title = title or "Section"
-            local Section = New("Frame", {
+            local SectionBox = New("Frame", {
                 Parent = NewTab,
-                BackgroundTransparency = 1,
-                Size = UDim2.new(1, 0, 0, 22),
+                BackgroundColor3 = T().Element,
+                BackgroundTransparency = T().Glass or 0,
+                Size = UDim2.new(1, 0, 0, 0),
+                AutomaticSize = Enum.AutomaticSize.Y,
+                ClipsDescendants = false,
             })
-            local T1 = New("TextLabel", {
-                Parent = Section,
+            Corner(SectionBox, 6)
+            local sStroke = Stroke(SectionBox, T().Stroke)
+            local TitleLabel = New("TextLabel", {
+                Parent = SectionBox,
                 BackgroundTransparency = 1,
-                Size = UDim2.new(0, 0, 0, 18),
-                Position = UDim2.new(0.5, 0, 0, 2),
-                AnchorPoint = Vector2.new(0.5, 0),
+                Size = UDim2.new(1, 0, 0, 32),
                 Font = Enum.Font.GothamBold,
                 Text = title,
-                TextColor3 = T().SubText,
-                TextSize = 12,
+                TextColor3 = T().Text,
+                TextSize = 14,
                 TextXAlignment = Enum.TextXAlignment.Center,
-                AutomaticSize = Enum.AutomaticSize.X,
             })
-            local LineL = New("Frame", {
-                Parent = Section,
+            local Divider = New("Frame", {
+                Parent = SectionBox,
                 BackgroundColor3 = T().Stroke,
+                BackgroundTransparency = 0.5,
                 BorderSizePixel = 0,
-                Position = UDim2.new(0, 4, 0, 11),
-                Size = UDim2.new(0.5, -(T1.TextBounds.X / 2 + 12), 0, 1),
+                Position = UDim2.new(0, 10, 0, 32),
+                Size = UDim2.new(1, -20, 0, 1),
             })
-            local LineR = New("Frame", {
-                Parent = Section,
-                BackgroundColor3 = T().Stroke,
-                BorderSizePixel = 0,
-                Position = UDim2.new(0.5, T1.TextBounds.X / 2 + 8, 0, 11),
-                Size = UDim2.new(0.5, -(T1.TextBounds.X / 2 + 12), 0, 1),
+            local Inner = New("Frame", {
+                Parent = SectionBox,
+                BackgroundTransparency = 1,
+                Position = UDim2.new(0, 0, 0, 38),
+                Size = UDim2.new(1, 0, 0, 0),
+                AutomaticSize = Enum.AutomaticSize.Y,
             })
+            New("UIPadding", {
+                Parent = Inner,
+                PaddingTop = UDim.new(0, 4),
+                PaddingBottom = UDim.new(0, 10),
+                PaddingLeft = UDim.new(0, 10),
+                PaddingRight = UDim.new(0, 10),
+            })
+            New("UIListLayout", {
+                Parent = Inner,
+                SortOrder = Enum.SortOrder.LayoutOrder,
+                Padding = UDim.new(0, 8),
+            })
+            CurrentParent = Inner
             Reg(function()
-                T1.TextColor3 = T().SubText
-                LineL.BackgroundColor3 = T().Stroke
-                LineR.BackgroundColor3 = T().Stroke
+                local theme = T()
+                SectionBox.BackgroundColor3 = theme.Element
+                SectionBox.BackgroundTransparency = theme.Glass or 0
+                sStroke.Color = theme.Stroke
+                TitleLabel.TextColor3 = theme.Text
+                Divider.BackgroundColor3 = theme.Stroke
             end)
-            return Section
+            return SectionBox
         end
         function Elements:Separator()
             local Sep = New("Frame", {
-                Parent = NewTab,
+                Parent = CurrentParent,
                 BackgroundTransparency = 1,
                 Size = UDim2.new(1, 0, 0, 10),
             })
@@ -1678,12 +1732,14 @@ function Library:CreateWindow(config)
                 Position = UDim2.new(0, 4, 0.5, 0),
                 Size = UDim2.new(1, -8, 0, 1),
             })
-            Reg(function() Line.BackgroundColor3 = T().Stroke end)
+            Reg(function()
+                Line.BackgroundColor3 = T().Stroke
+            end)
             return Sep
         end
         function Elements:Divider(text)
             local Div = New("Frame", {
-                Parent = NewTab,
+                Parent = CurrentParent,
                 BackgroundTransparency = 1,
                 Size = UDim2.new(1, 0, 0, 20),
             })
@@ -1728,7 +1784,9 @@ function Library:CreateWindow(config)
                     Position = UDim2.new(0, 4, 0.5, 0),
                     Size = UDim2.new(1, -8, 0, 1),
                 })
-                Reg(function() Line.BackgroundColor3 = T().Stroke end)
+                Reg(function()
+                    Line.BackgroundColor3 = T().Stroke
+                end)
             end
             return Div
         end
@@ -1739,7 +1797,7 @@ function Library:CreateWindow(config)
             local hasDesc = tooltip and tooltip ~= ""
             local btnH = hasDesc and 54 or 38
             local Button = New("TextButton", {
-                Parent = NewTab,
+                Parent = CurrentParent,
                 BackgroundColor3 = T().Element,
                 BackgroundTransparency = T().Glass or 0,
                 Size = UDim2.new(1, 0, 0, btnH),
@@ -1824,7 +1882,9 @@ function Library:CreateWindow(config)
             Button.MouseButton1Click:Connect(function()
                 Ripple(Button)
                 if flag then Library.Flags[flag] = true end
-                task.spawn(function() pcall(callback) end)
+                task.spawn(function()
+                    pcall(callback)
+                end)
             end)
             return { Set = function() end, Get = function() return nil end }
         end
@@ -1836,7 +1896,7 @@ function Library:CreateWindow(config)
             local hasDesc = tooltip and tooltip ~= ""
             local btnH = hasDesc and 54 or 38
             local Btn = New("TextButton", {
-                Parent = NewTab,
+                Parent = CurrentParent,
                 BackgroundColor3 = T().Element,
                 BackgroundTransparency = T().Glass or 0,
                 Size = UDim2.new(1, 0, 0, btnH),
@@ -1921,7 +1981,9 @@ function Library:CreateWindow(config)
             Btn.MouseButton1Click:Connect(function()
                 Ripple(Btn)
                 if flag then Library.Flags[flag] = true end
-                task.spawn(function() pcall(callback) end)
+                task.spawn(function()
+                    pcall(callback)
+                end)
             end)
             return { Set = function() end, Get = function() return nil end }
         end
@@ -1934,7 +1996,7 @@ function Library:CreateWindow(config)
             end
             local imageId, height = o.Image, o.Height
             local Frame = New("Frame", {
-                Parent = NewTab,
+                Parent = CurrentParent,
                 BackgroundColor3 = T().Element,
                 BackgroundTransparency = T().Glass or 0,
                 Size = UDim2.new(1, 0, 0, height),
@@ -1956,12 +2018,8 @@ function Library:CreateWindow(config)
                 stroke.Color = T().Stroke
             end)
             local obj = {}
-            function obj:Set(id)
-                img.Image = Library:GetIcon(id)
-            end
-            function obj:Get()
-                return img.Image
-            end
+            function obj:Set(id) img.Image = Library:GetIcon(id) end
+            function obj:Get() return img.Image end
             return obj
         end
         function Elements:Toggle(arg1, arg2, arg3, arg4, arg5)
@@ -1970,7 +2028,7 @@ function Library:CreateWindow(config)
             local toggled = default or false
             local hasIcon = icon and icon ~= ""
             local Toggle = New("TextButton", {
-                Parent = NewTab,
+                Parent = CurrentParent,
                 BackgroundColor3 = T().Element,
                 BackgroundTransparency = T().Glass or 0,
                 Size = UDim2.new(1, 0, 0, 38),
@@ -1989,7 +2047,7 @@ function Library:CreateWindow(config)
             local lbl = New("TextLabel", {
                 Parent = Toggle,
                 BackgroundTransparency = 1,
-                Size = UDim2.new(1, -(textX + 50), 1, 0),
+                Size = UDim2.new(1, -(textX + 90), 1, 0),
                 Position = UDim2.new(0, textX, 0, 0),
                 Font = Enum.Font.Gotham,
                 Text = name,
@@ -1997,6 +2055,22 @@ function Library:CreateWindow(config)
                 TextSize = 13,
                 TextXAlignment = Enum.TextXAlignment.Left,
             })
+            local KeybindBtn = New("TextButton", {
+                Parent = Toggle,
+                AnchorPoint = Vector2.new(1, 0.5),
+                BackgroundColor3 = T().KeyBox,
+                BackgroundTransparency = T().Glass or 0,
+                Position = UDim2.new(1, -52, 0.5, 0),
+                Size = UDim2.new(0, 36, 0, 22),
+                Font = Enum.Font.Gotham,
+                Text = "[None]",
+                TextColor3 = T().SubText,
+                TextSize = 11,
+                AutoButtonColor = false,
+                ZIndex = 5,
+            })
+            Corner(KeybindBtn, 4)
+            local kbStroke = Stroke(KeybindBtn, T().Stroke)
             local Holder = New("Frame", {
                 Parent = Toggle,
                 AnchorPoint = Vector2.new(1, 0.5),
@@ -2023,6 +2097,12 @@ function Library:CreateWindow(config)
                 stroke.Color = theme.Stroke
                 lbl.TextColor3 = theme.Text
                 Checkmark.ImageColor3 = theme.Text
+                KeybindBtn.BackgroundColor3 = theme.KeyBox
+                KeybindBtn.BackgroundTransparency = theme.Glass or 0
+                kbStroke.Color = theme.Stroke
+                if not capturing then
+                    KeybindBtn.TextColor3 = theme.SubText
+                end
                 if iconLbl then
                     local sub = iconLbl:FindFirstChildOfClass("ImageLabel")
                     if sub then sub.ImageColor3 = theme.Text end
@@ -2061,12 +2141,51 @@ function Library:CreateWindow(config)
             end
             update(false)
             ApplyHover(Toggle, stroke)
+            local currentKey = nil
+            local capturing = false
+            KeybindBtn.MouseEnter:Connect(function() Toggle.Active = false end)
+            KeybindBtn.MouseLeave:Connect(function() Toggle.Active = true end)
+            KeybindBtn.MouseButton1Click:Connect(function()
+                if capturing then return end
+                capturing = true
+                KeybindBtn.Text = "[...]"
+                KeybindBtn.TextColor3 = T().Accent
+                local conn
+                conn = UserInputService.InputBegan:Connect(function(input, gpe)
+                    if gpe then return end
+                    if input.UserInputType == Enum.UserInputType.Keyboard then
+                        if input.KeyCode == Enum.KeyCode.Escape then
+                            currentKey = nil
+                            KeybindBtn.Text = "[None]"
+                        else
+                            currentKey = input.KeyCode
+                            KeybindBtn.Text = "[" .. currentKey.Name .. "]"
+                        end
+                        KeybindBtn.TextColor3 = T().SubText
+                        capturing = false
+                        conn:Disconnect()
+                    end
+                end)
+            end)
+            UserInputService.InputBegan:Connect(function(input, gpe)
+                if gpe or capturing then return end
+                if currentKey and input.KeyCode == currentKey then
+                    toggled = not toggled
+                    update(true)
+                    if flag then Library.Flags[flag] = toggled end
+                    task.spawn(function()
+                        pcall(callback, toggled)
+                    end)
+                end
+            end)
             Toggle.MouseButton1Click:Connect(function()
                 toggled = not toggled
                 Ripple(Toggle)
                 update(true)
                 if flag then Library.Flags[flag] = toggled end
-                task.spawn(function() pcall(callback, toggled) end)
+                task.spawn(function()
+                    pcall(callback, toggled)
+                end)
             end)
             local obj = {}
             function obj:Set(v)
@@ -2075,9 +2194,7 @@ function Library:CreateWindow(config)
                 if flag then Library.Flags[flag] = toggled end
                 pcall(callback, toggled)
             end
-            function obj:Get()
-                return toggled
-            end
+            function obj:Get() return toggled end
             if flag then
                 Library.Flags[flag] = toggled
                 Library.Options[flag] = obj
@@ -2104,7 +2221,7 @@ function Library:CreateWindow(config)
             local value = math.clamp(default or minv, minv, maxv)
             local hasIcon = icon and icon ~= ""
             local Slider = New("Frame", {
-                Parent = NewTab,
+                Parent = CurrentParent,
                 BackgroundColor3 = T().Element,
                 BackgroundTransparency = T().Glass or 0,
                 Size = UDim2.new(1, 0, 0, 56),
@@ -2228,9 +2345,7 @@ function Library:CreateWindow(config)
                 if flag then Library.Flags[flag] = value end
                 if fire == true then pcall(callback, value) end
             end
-            function obj:Get()
-                return value
-            end
+            function obj:Get() return value end
             obj:Set(value, false)
             if flag then Library.Options[flag] = obj end
             return obj
@@ -2240,7 +2355,7 @@ function Library:CreateWindow(config)
             local name, callback, flag, placeholder, icon = o.Title, o.Callback, o.Flag, o.Placeholder, o.Icon
             local hasIcon = icon and icon ~= ""
             local Frame = New("Frame", {
-                Parent = NewTab,
+                Parent = CurrentParent,
                 BackgroundColor3 = T().Element,
                 BackgroundTransparency = T().Glass or 0,
                 Size = UDim2.new(1, 0, 0, 38),
@@ -2307,9 +2422,7 @@ function Library:CreateWindow(config)
                 Input.Text = tostring(v)
                 if flag then Library.Flags[flag] = Input.Text end
             end
-            function obj:Get()
-                return Input.Text
-            end
+            function obj:Get() return Input.Text end
             if flag then Library.Options[flag] = obj end
             return obj
         end
@@ -2330,7 +2443,7 @@ function Library:CreateWindow(config)
             local currentKey = default
             local capturing = false
             local KB = New("TextButton", {
-                Parent = NewTab,
+                Parent = CurrentParent,
                 BackgroundColor3 = T().Element,
                 BackgroundTransparency = T().Glass or 0,
                 Size = UDim2.new(1, 0, 0, 38),
@@ -2411,7 +2524,9 @@ function Library:CreateWindow(config)
             UserInputService.InputBegan:Connect(function(input, gpe)
                 if gpe or capturing then return end
                 if input.KeyCode == currentKey then
-                    task.spawn(function() pcall(callback) end)
+                    task.spawn(function()
+                        pcall(callback)
+                    end)
                 end
             end)
             local obj = {}
@@ -2420,9 +2535,7 @@ function Library:CreateWindow(config)
                 KeyLbl.Text = key.Name
                 if flag then Library.Flags[flag] = key end
             end
-            function obj:Get()
-                return currentKey
-            end
+            function obj:Get() return currentKey end
             if flag then
                 Library.Flags[flag] = currentKey
                 Library.Options[flag] = obj
@@ -2447,7 +2560,7 @@ function Library:CreateWindow(config)
             local hasIcon = icon and icon ~= ""
             local selected = default or options[1]
             local Dropdown = New("Frame", {
-                Parent = NewTab,
+                Parent = CurrentParent,
                 BackgroundColor3 = T().Element,
                 BackgroundTransparency = T().Glass or 0,
                 Size = UDim2.new(1, 0, 0, 38),
@@ -2599,12 +2712,8 @@ function Library:CreateWindow(config)
                 if flag then Library.Flags[flag] = val end
                 pcall(callback, val)
             end
-            function obj:Get()
-                return selected
-            end
-            function obj:IsOpen()
-                return open
-            end
+            function obj:Get() return selected end
+            function obj:IsOpen() return open end
             function obj:Refresh(newOptions)
                 options = newOptions or options
                 for _, c in ipairs(List:GetChildren()) do
@@ -2646,7 +2755,7 @@ function Library:CreateWindow(config)
             local hasIcon = icon and icon ~= ""
             local selected = default or {}
             local Multi = New("Frame", {
-                Parent = NewTab,
+                Parent = CurrentParent,
                 BackgroundColor3 = T().Element,
                 BackgroundTransparency = T().Glass or 0,
                 Size = UDim2.new(1, 0, 0, 38),
@@ -2774,7 +2883,11 @@ function Library:CreateWindow(config)
                     TextXAlignment = Enum.TextXAlignment.Left,
                 })
                 table.insert(optionButtons, {
-                    btn = ob, check = Check, stroke = cStroke, label = txt, opt = opt,
+                    btn = ob,
+                    check = Check,
+                    stroke = cStroke,
+                    label = txt,
+                    opt = opt,
                 })
                 ob.MouseEnter:Connect(function()
                     Tween(ob, 0.1, { BackgroundColor3 = T().ElementHover })
@@ -2832,12 +2945,8 @@ function Library:CreateWindow(config)
                 updateCount()
                 pcall(callback, selected)
             end
-            function obj:Get()
-                return selected
-            end
-            function obj:IsOpen()
-                return open
-            end
+            function obj:Get() return selected end
+            function obj:IsOpen() return open end
             function obj:Refresh(newOptions)
                 options = newOptions or options
                 for _, item in ipairs(optionButtons) do
@@ -2866,7 +2975,7 @@ function Library:CreateWindow(config)
             local h, s, v = Color3.toHSV(default)
             local color = default
             local Picker = New("Frame", {
-                Parent = NewTab,
+                Parent = CurrentParent,
                 BackgroundColor3 = T().Element,
                 BackgroundTransparency = T().Glass or 0,
                 Size = UDim2.new(1, 0, 0, 112),
@@ -3026,9 +3135,7 @@ function Library:CreateWindow(config)
                 if flag then Library.Flags[flag] = color end
                 if fire == true then pcall(callback, color) end
             end
-            function obj:Get()
-                return color
-            end
+            function obj:Get() return color end
             obj:Set(default, false)
             if flag then Library.Options[flag] = obj end
             return obj
@@ -3036,7 +3143,7 @@ function Library:CreateWindow(config)
         function Elements:Label(text)
             text = text or "Label"
             local Frame = New("Frame", {
-                Parent = NewTab,
+                Parent = CurrentParent,
                 BackgroundColor3 = T().Element,
                 BackgroundTransparency = T().Glass or 0,
                 Size = UDim2.new(1, 0, 0, 32),
@@ -3069,7 +3176,7 @@ function Library:CreateWindow(config)
         function Elements:Paragraph(text)
             text = text or "Paragraph"
             local Frame = New("Frame", {
-                Parent = NewTab,
+                Parent = CurrentParent,
                 BackgroundColor3 = T().Element,
                 BackgroundTransparency = T().Glass or 0,
                 Size = UDim2.new(1, 0, 0, 0),
@@ -3137,7 +3244,7 @@ function Library:CreateWindow(config)
             }
             local p = palette[key]
             local Frame = New("Frame", {
-                Parent = NewTab,
+                Parent = CurrentParent,
                 BackgroundColor3 = p.bg,
                 BackgroundTransparency = T().Glass or 0,
                 Size = UDim2.new(1, 0, 0, 32),
@@ -3171,24 +3278,16 @@ function Library:CreateWindow(config)
             function obj:Get() return lbl.Text end
             return obj
         end
-        function Elements:InfoLabel(text)
-            return makeStatus(text or "Info", "Info", Library.Icons.Info)
-        end
-        function Elements:WarningLabel(text)
-            return makeStatus(text or "Warning", "Warning", Library.Icons.Warning)
-        end
-        function Elements:ErrorLabel(text)
-            return makeStatus(text or "Error", "Error", Library.Icons.XCircle)
-        end
-        function Elements:SuccessLabel(text)
-            return makeStatus(text or "Success", "Success", Library.Icons.Check)
-        end
+        function Elements:InfoLabel(text) return makeStatus(text or "Info", "Info", Library.Icons.Info) end
+        function Elements:WarningLabel(text) return makeStatus(text or "Warning", "Warning", Library.Icons.Warning) end
+        function Elements:ErrorLabel(text) return makeStatus(text or "Error", "Error", Library.Icons.XCircle) end
+        function Elements:SuccessLabel(text) return makeStatus(text or "Success", "Success", Library.Icons.Check) end
         function Elements:ProgressBar(name, maxv)
             name = name or "Progress"
             maxv = maxv or 100
             local value = 0
             local Bar = New("Frame", {
-                Parent = NewTab,
+                Parent = CurrentParent,
                 BackgroundColor3 = T().Element,
                 BackgroundTransparency = T().Glass or 0,
                 Size = UDim2.new(1, 0, 0, 48),
@@ -3253,16 +3352,14 @@ function Library:CreateWindow(config)
                 Tween(Fill, 0.2, { Size = UDim2.new(rel, 0, 1, 0) })
                 Percent.Text = math.floor(rel * 100) .. "%"
             end
-            function obj:Get()
-                return value
-            end
+            function obj:Get() return value end
             return obj
         end
         function Elements:Accordion(title)
             title = title or "Accordion"
             local open = false
             local Container = New("Frame", {
-                Parent = NewTab,
+                Parent = CurrentParent,
                 BackgroundColor3 = T().Element,
                 BackgroundTransparency = T().Glass or 0,
                 Size = UDim2.new(1, 0, 0, 38),
@@ -3361,8 +3458,18 @@ function Library:ToggleUI()
     if not self._mainGui then return end
     local Main = self._mainGui:FindFirstChild("Main")
     if not Main then return end
-    Main.Visible = not Main.Visible
-    self.Open = Main.Visible
+    local isOpening = not Main.Visible
+    self.Open = isOpening
+    if isOpening then
+        Main.Visible = true
+        Main.UIScale.Scale = 0.8
+        TweenService:Create(Main.UIScale, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+    else
+        TweenService:Create(Main.UIScale, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Scale = 0.8 }):Play()
+        task.delay(0.15, function()
+            if not self.Open then Main.Visible = false end
+        end)
+    end
     Library:UpdateBlur()
 end
 
